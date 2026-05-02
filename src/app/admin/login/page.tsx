@@ -36,7 +36,7 @@ export default async function LoginPage({ searchParams }: Props) {
         <LoginForm />
 
         <p className="mt-6 text-center text-xs text-slate-500">
-          Akun admin dibuat oleh pengurus via Supabase Dashboard.
+          Akun admin dibuat oleh pengurus yayasan.
         </p>
       </div>
     </div>

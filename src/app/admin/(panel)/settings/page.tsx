@@ -7,7 +7,7 @@ export default async function SettingsPage() {
     { label: "Login sebagai", value: user.email },
     { label: "Admin Email Allowlist", value: process.env.ADMIN_EMAILS || "(belum di-set)" },
     { label: "Mushaf Unit Price", value: `Rp ${Number(process.env.MUSHAF_UNIT_PRICE || 85000).toLocaleString("id-ID")}` },
-    { label: "Supabase URL", value: process.env.SUPABASE_URL || "-" },
+    { label: "Database URL", value: process.env.SUPABASE_URL || "-" },
     { label: "Service Role Key", value: process.env.SUPABASE_SERVICE_ROLE_KEY ? "✓ Configured" : "✗ Belum di-set", secret: true },
     { label: "Midtrans Mode", value: process.env.MIDTRANS_IS_PRODUCTION === "true" ? "Production" : "Sandbox" },
     { label: "Midtrans Server Key", value: process.env.MIDTRANS_SERVER_KEY ? "✓ Configured" : "✗ Belum di-set", secret: true },
@@ -43,7 +43,7 @@ export default async function SettingsPage() {
           <a href="/admin/users" className="text-primary underline font-semibold">
             Admin Users
           </a>
-          . Tidak perlu lagi buka Supabase Dashboard atau edit env file.
+          . Semua bisa dikelola dari halaman admin ini.
         </p>
         <p className="text-xs text-slate-600">
           Email di <code className="bg-white px-1 rounded">ADMIN_EMAILS</code> tetap berlaku

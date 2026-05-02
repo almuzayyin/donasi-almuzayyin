@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import SignOutButton from "./SignOutButton";
+import NotificationCenter from "./NotificationCenter";
 
 interface NavItem {
   href: string;
@@ -41,14 +42,22 @@ export default function PanelShell({ user, navItems, children }: Props) {
           </span>
           <span className="font-bold text-primary text-sm">Al Muzayyin</span>
         </Link>
-        <button
-          onClick={() => setOpen(true)}
-          className="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 text-xl"
-          aria-label="Buka menu"
-        >
-          ☰
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationCenter />
+          <button
+            onClick={() => setOpen(true)}
+            className="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 text-xl"
+            aria-label="Buka menu"
+          >
+            ☰
+          </button>
+        </div>
       </header>
+
+      {/* Desktop top bar (only notification bell) */}
+      <div className="hidden md:flex fixed top-4 right-4 z-30">
+        <NotificationCenter />
+      </div>
 
       {/* Backdrop (mobile) */}
       {open && (

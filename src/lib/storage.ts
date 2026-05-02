@@ -427,6 +427,72 @@ export const expenseStore = {
 };
 
 // Public read-only store untuk halaman /transparansi (anon RLS)
+// Public donation feed (sanitized for popup notifikasi & social proof)
+export interface PublicDonationItem {
+  donor: string;
+  amount: number;
+  campaign: string | null;
+  paidAt: string;
+  type: "uang" | "mushaf";
+}
+
+function sanitizeDonorName(name: string, anonymous: boolean): string {
+  if (anonymous) return "Hamba Allah";
+  // Privacy: tampilkan nama depan + inisial nama belakang
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+}
+
+export const publicDonationFeed = {
+  async listRecent(limit: number = 20): Promise<PublicDonationItem[]> {
+    const supabase = getSupabaseAdmin();
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from(T_DONATIONS)
+      .select("donor_name, donor_anonymous, amount, type, paid_at, campaign_id")
+      .eq("status", "paid")
+      .gte("paid_at", cutoff)
+      .order("paid_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+
+    const campaigns = await getSupabaseAdmin().from(T_CAMPAIGNS).select("id, title");
+    const campaignMap = new Map((campaigns.data ?? []).map((c: any) => [c.id, c.title]));
+
+    return (data ?? []).map((r: any) => ({
+      donor: sanitizeDonorName(r.donor_name, r.donor_anonymous),
+      amount: r.amount,
+      campaign: r.campaign_id ? campaignMap.get(r.campaign_id) ?? null : null,
+      paidAt: r.paid_at,
+      type: r.type,
+    }));
+  },
+
+  async listSince(sinceIso: string): Promise<PublicDonationItem[]> {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from(T_DONATIONS)
+      .select("donor_name, donor_anonymous, amount, type, paid_at, campaign_id")
+      .eq("status", "paid")
+      .gt("paid_at", sinceIso)
+      .order("paid_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+
+    const campaigns = await getSupabaseAdmin().from(T_CAMPAIGNS).select("id, title");
+    const campaignMap = new Map((campaigns.data ?? []).map((c: any) => [c.id, c.title]));
+
+    return (data ?? []).map((r: any) => ({
+      donor: sanitizeDonorName(r.donor_name, r.donor_anonymous),
+      amount: r.amount,
+      campaign: r.campaign_id ? campaignMap.get(r.campaign_id) ?? null : null,
+      paidAt: r.paid_at,
+      type: r.type,
+    }));
+  },
+};
+
 export const publicReportStore = {
   async listPublished(opts?: { campaignId?: string; limit?: number }): Promise<DonationReport[]> {
     let query = getSupabaseAnon()

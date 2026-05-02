@@ -159,7 +159,7 @@ export default function CampaignForm({ initial, mode }: Props) {
           onChange={(e) => e.target.files?.[0] && uploadCover(e.target.files[0])}
           className="block w-full text-sm" />
         {uploading && <p className="mt-2 text-xs text-slate-500">Mengupload...</p>}
-        <p className="mt-2 text-xs text-slate-500">Max 5MB. PNG/JPG/WEBP. Disimpan di Supabase Storage.</p>
+        <p className="mt-2 text-xs text-slate-500">Max 5MB. PNG/JPG/WEBP.</p>
       </div>
 
       {error && (

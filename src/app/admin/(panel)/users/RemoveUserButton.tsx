@@ -8,7 +8,7 @@ export default function RemoveUserButton({ id, email }: { id: string; email: str
   const [loading, setLoading] = useState(false);
 
   async function remove() {
-    if (!confirm(`Hapus admin ${email}? Akun Supabase juga akan dihapus.`)) return;
+    if (!confirm(`Hapus admin ${email}? Akun login juga akan dihapus.`)) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });

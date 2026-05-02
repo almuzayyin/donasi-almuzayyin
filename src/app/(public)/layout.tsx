@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DonationFeedPopup from "./DonationFeedPopup";
 
 function PaymentBadge({ children }: { children: React.ReactNode }) {
   return (
@@ -43,6 +44,7 @@ export default function PublicLayout({
         </nav>
       </header>
       <main className="flex-1">{children}</main>
+      <DonationFeedPopup />
       <footer className="border-t border-slate-200 bg-white py-8 sm:py-10 mt-12 sm:mt-16">
         <div className="mx-auto max-w-6xl px-5 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-sm">
           <div className="col-span-2 md:col-span-1">
