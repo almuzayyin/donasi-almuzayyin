@@ -5,6 +5,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
   { href: "/admin/donations", label: "Donasi", icon: "💰" },
   { href: "/admin/campaigns", label: "Program", icon: "🗂️" },
+  { href: "/admin/finance", label: "Keuangan", icon: "📊" },
   { href: "/admin/reports", label: "Laporan", icon: "📋" },
   { href: "/admin/popups", label: "Popup Manual", icon: "🔔" },
   { href: "/admin/pages", label: "Halaman", icon: "📄" },

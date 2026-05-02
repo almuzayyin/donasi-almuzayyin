@@ -1,21 +1,52 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
 import { popupStore, campaignStore } from "@lib/storage";
+import Pagination from "../Pagination";
 
 const idr = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 
-export default async function PopupsListPage() {
+const PAGE_SIZE = 20;
+
+interface Props {
+  searchParams: Promise<{
+    q?: string;
+    status?: string;
+    page?: string;
+  }>;
+}
+
+export default async function PopupsListPage({ searchParams }: Props) {
   await requireAdmin();
-  const [popups, campaigns] = await Promise.all([
+  const params = await searchParams;
+  const [allPopups, campaigns] = await Promise.all([
     popupStore.list(),
     campaignStore.list(),
   ]);
   const campaignMap = new Map(campaigns.map((c) => [c.id, c.title]));
 
-  function isExpired(p: typeof popups[0]) {
+  function isExpired(p: typeof allPopups[0]) {
     return p.showUntil && new Date(p.showUntil) < new Date();
   }
+
+  let popups = allPopups;
+  if (params.q) {
+    const q = params.q.toLowerCase();
+    popups = popups.filter(
+      (p) =>
+        p.donorName.toLowerCase().includes(q) ||
+        (p.donorLocation ?? "").toLowerCase().includes(q) ||
+        (p.customMessage ?? "").toLowerCase().includes(q)
+    );
+  }
+  if (params.status === "active") popups = popups.filter((p) => p.active && !isExpired(p));
+  if (params.status === "expired") popups = popups.filter((p) => isExpired(p));
+  if (params.status === "inactive") popups = popups.filter((p) => !p.active);
+
+  const total = popups.length;
+  const currentPage = Math.max(1, parseInt(params.page ?? "1") || 1);
+  const offset = (currentPage - 1) * PAGE_SIZE;
+  popups = popups.slice(offset, offset + PAGE_SIZE);
 
   return (
     <div>
@@ -30,6 +61,32 @@ export default async function PopupsListPage() {
           + Buat Popup
         </Link>
       </div>
+
+      {/* Filter */}
+      <form className="card mb-5 sm:mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3" method="get">
+        <div>
+          <label className="label">Cari</label>
+          <input name="q" type="search" defaultValue={params.q ?? ""}
+            placeholder="Nama / lokasi / pesan" className="input" />
+        </div>
+        <div>
+          <label className="label">Status</label>
+          <select name="status" defaultValue={params.status ?? ""} className="input">
+            <option value="">Semua</option>
+            <option value="active">Aktif</option>
+            <option value="expired">Kedaluwarsa</option>
+            <option value="inactive">Non-aktif</option>
+          </select>
+        </div>
+        <div className="flex items-end gap-2">
+          <button type="submit" className="btn-primary flex-1">Filter</button>
+          <Link href="/admin/popups" className="btn-secondary">Reset</Link>
+        </div>
+      </form>
+
+      <p className="text-sm text-slate-600 mb-3">
+        Total <strong>{total}</strong> popup
+      </p>
 
       {popups.length === 0 ? (
         <div className="card text-center text-slate-500 py-10">
@@ -87,6 +144,14 @@ export default async function PopupsListPage() {
           })}
         </div>
       )}
+
+      <Pagination
+        currentPage={currentPage}
+        pageSize={PAGE_SIZE}
+        totalItems={total}
+        baseUrl="/admin/popups"
+        searchParams={params}
+      />
 
       <div className="mt-6 card bg-slate-50 border-slate-200">
         <h3 className="font-semibold text-sm mb-2">💡 Kapan Pakai Popup Manual?</h3>

@@ -1,13 +1,41 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
 import { campaignStore } from "@lib/storage";
+import Pagination from "../Pagination";
 
 const idr = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 
-export default async function CampaignsPage() {
+const PAGE_SIZE = 12;
+
+interface Props {
+  searchParams: Promise<{
+    q?: string;
+    type?: string;
+    status?: string;
+    page?: string;
+  }>;
+}
+
+export default async function CampaignsPage({ searchParams }: Props) {
   await requireAdmin();
-  const campaigns = await campaignStore.list();
+  const params = await searchParams;
+  let campaigns = await campaignStore.list();
+
+  if (params.q) {
+    const q = params.q.toLowerCase();
+    campaigns = campaigns.filter(
+      (c) => c.title.toLowerCase().includes(q) || c.slug.toLowerCase().includes(q)
+    );
+  }
+  if (params.type) campaigns = campaigns.filter((c) => c.type === params.type);
+  if (params.status === "active") campaigns = campaigns.filter((c) => c.active);
+  if (params.status === "inactive") campaigns = campaigns.filter((c) => !c.active);
+
+  const total = campaigns.length;
+  const currentPage = Math.max(1, parseInt(params.page ?? "1") || 1);
+  const offset = (currentPage - 1) * PAGE_SIZE;
+  campaigns = campaigns.slice(offset, offset + PAGE_SIZE);
 
   return (
     <div>
@@ -15,6 +43,39 @@ export default async function CampaignsPage() {
         <h1 className="page-title">Program Donasi</h1>
         <Link href="/admin/campaigns/new" className="btn-primary w-full sm:w-auto">+ Buat Program Baru</Link>
       </div>
+
+      {/* Filter */}
+      <form className="card mb-5 sm:mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" method="get">
+        <div>
+          <label className="label">Cari</label>
+          <input name="q" type="search" defaultValue={params.q ?? ""}
+            placeholder="Judul / slug" className="input" />
+        </div>
+        <div>
+          <label className="label">Jenis</label>
+          <select name="type" defaultValue={params.type ?? ""} className="input">
+            <option value="">Semua</option>
+            <option value="uang">Donasi Uang</option>
+            <option value="mushaf">Wakaf Mushaf</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">Status</label>
+          <select name="status" defaultValue={params.status ?? ""} className="input">
+            <option value="">Semua</option>
+            <option value="active">Aktif</option>
+            <option value="inactive">Nonaktif</option>
+          </select>
+        </div>
+        <div className="flex items-end gap-2">
+          <button type="submit" className="btn-primary flex-1">Filter</button>
+          <Link href="/admin/campaigns" className="btn-secondary">Reset</Link>
+        </div>
+      </form>
+
+      <p className="text-sm text-slate-600 mb-3">
+        Total <strong>{total}</strong> program
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
         {campaigns.map((c) => {
@@ -56,10 +117,25 @@ export default async function CampaignsPage() {
         })}
         {campaigns.length === 0 && (
           <div className="card md:col-span-2 text-center text-slate-500">
-            Belum ada program. <Link href="/admin/campaigns/new" className="text-primary font-semibold">Buat sekarang</Link>.
+            {params.q || params.type || params.status
+              ? "Tidak ada program yang cocok dengan filter."
+              : (
+                <>
+                  Belum ada program.{" "}
+                  <Link href="/admin/campaigns/new" className="text-primary font-semibold">Buat sekarang</Link>.
+                </>
+              )}
           </div>
         )}
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        pageSize={PAGE_SIZE}
+        totalItems={total}
+        baseUrl="/admin/campaigns"
+        searchParams={params}
+      />
     </div>
   );
 }

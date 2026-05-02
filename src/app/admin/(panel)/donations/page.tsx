@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
 import { donationStore } from "@lib/storage";
+import Pagination from "../Pagination";
 
 const idr = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
+
+const PAGE_SIZE = 25;
 
 interface Props {
   searchParams: Promise<{
     status?: string;
     type?: string;
     q?: string;
+    page?: string;
   }>;
 }
 
@@ -30,6 +34,11 @@ export default async function DonationsPage({ searchParams }: Props) {
         d.donor.name.toLowerCase().includes(q)
     );
   }
+
+  const total = donations.length;
+  const currentPage = Math.max(1, parseInt(params.page ?? "1") || 1);
+  const offset = (currentPage - 1) * PAGE_SIZE;
+  donations = donations.slice(offset, offset + PAGE_SIZE);
 
   const exportUrl = `/api/admin/donations/export${
     params.status || params.type || params.q
@@ -92,7 +101,7 @@ export default async function DonationsPage({ searchParams }: Props) {
 
       <div className="card">
         <p className="text-sm text-slate-600 mb-4">
-          Menampilkan <strong>{donations.length}</strong> donasi
+          Total <strong>{total}</strong> donasi cocok dengan filter
         </p>
 
         {/* Mobile: card list */}
@@ -196,6 +205,14 @@ export default async function DonationsPage({ searchParams }: Props) {
           </tbody>
         </table>
         </div>
+
+        <Pagination
+          currentPage={currentPage}
+          pageSize={PAGE_SIZE}
+          totalItems={total}
+          baseUrl="/admin/donations"
+          searchParams={params}
+        />
       </div>
     </div>
   );

@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@lib/supabase";
+import Pagination from "../Pagination";
 
 interface LogRow {
   id: number;
@@ -10,16 +12,37 @@ interface LogRow {
   created_at: string;
 }
 
-export default async function LogsPage() {
+const PAGE_SIZE = 25;
+
+interface Props {
+  searchParams: Promise<{
+    q?: string;
+    event?: string;
+    sig?: string;
+    page?: string;
+  }>;
+}
+
+export default async function LogsPage({ searchParams }: Props) {
   await requireAdmin();
+  const params = await searchParams;
+  const currentPage = Math.max(1, parseInt(params.page ?? "1") || 1);
+  const offset = (currentPage - 1) * PAGE_SIZE;
 
-  const { data, error } = await getSupabaseAdmin()
+  let query = getSupabaseAdmin()
     .from("donasi_payment_logs")
-    .select("*")
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range(offset, offset + PAGE_SIZE - 1);
 
+  if (params.q) query = query.ilike("order_id", `%${params.q}%`);
+  if (params.event) query = query.eq("event_type", params.event);
+  if (params.sig === "valid") query = query.eq("signature_valid", true);
+  if (params.sig === "invalid") query = query.eq("signature_valid", false);
+
+  const { data, error, count } = await query;
   const logs = (data as LogRow[] | null) ?? [];
+  const total = count ?? 0;
 
   return (
     <div>
@@ -30,6 +53,39 @@ export default async function LogsPage() {
         </p>
       </div>
 
+      {/* Filter */}
+      <form className="card mb-5 sm:mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3" method="get">
+        <div>
+          <label className="label">Cari Order ID</label>
+          <input name="q" type="search" defaultValue={params.q ?? ""}
+            placeholder="DNS-..." className="input font-mono text-sm" />
+        </div>
+        <div>
+          <label className="label">Event</label>
+          <select name="event" defaultValue={params.event ?? ""} className="input">
+            <option value="">Semua</option>
+            <option value="webhook">Webhook</option>
+            <option value="sync">Sync</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">Signature</label>
+          <select name="sig" defaultValue={params.sig ?? ""} className="input">
+            <option value="">Semua</option>
+            <option value="valid">Valid</option>
+            <option value="invalid">Invalid</option>
+          </select>
+        </div>
+        <div className="flex items-end gap-2">
+          <button type="submit" className="btn-primary flex-1">Filter</button>
+          <Link href="/admin/logs" className="btn-secondary">Reset</Link>
+        </div>
+      </form>
+
+      <p className="text-sm text-slate-600 mb-3">
+        Total <strong>{total}</strong> log
+      </p>
+
       {error && (
         <div className="card mb-4 bg-red-50 border-red-200 text-red-700">
           {error.message}
@@ -38,7 +94,9 @@ export default async function LogsPage() {
 
       {logs.length === 0 ? (
         <div className="card text-center text-slate-500">
-          Belum ada webhook log. Akan terisi setelah ada transaksi pembayaran.
+          {params.q || params.event || params.sig
+            ? "Tidak ada log yang cocok dengan filter."
+            : "Belum ada webhook log. Akan terisi setelah ada transaksi pembayaran."}
         </div>
       ) : (
         <div className="space-y-3">
@@ -70,6 +128,14 @@ export default async function LogsPage() {
           ))}
         </div>
       )}
+
+      <Pagination
+        currentPage={currentPage}
+        pageSize={PAGE_SIZE}
+        totalItems={total}
+        baseUrl="/admin/logs"
+        searchParams={params}
+      />
     </div>
   );
 }
