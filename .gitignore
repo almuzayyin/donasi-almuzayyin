@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-mcp/
+.next/
+out/
+.env
+.env*.local
+.env.production
+data/
+*.log
+.DS_Store
+.vscode/
+.idea/
+.vercel
