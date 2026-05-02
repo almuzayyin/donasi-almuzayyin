@@ -3,6 +3,7 @@ import type {
   Campaign,
   Donation,
   DonationReport,
+  InfoPage,
   MushafDonation,
   ReportExpense,
   ReportPhoto,
@@ -56,6 +57,7 @@ const T_DONATIONS = "donasi_donations";
 const T_PAYMENT_LOGS = "donasi_payment_logs";
 const T_REPORTS = "donasi_reports";
 const T_EXPENSES = "donasi_report_expenses";
+const T_PAGES = "donasi_pages";
 
 function rowToCampaign(r: CampaignRow): Campaign {
   return {
@@ -465,5 +467,98 @@ export const publicReportStore = {
       .eq("published", true);
     if (error) throw error;
     return (data ?? []).reduce((s, r) => s + (Number(r.amount_used) || 0), 0);
+  },
+};
+
+// ==========================================================================
+// Halaman Legal/Info (CMS Sederhana)
+// ==========================================================================
+
+interface PageRow {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  meta_description: string | null;
+  published: boolean;
+  is_system: boolean;
+  created_at: string;
+  updated_at: string;
+  updated_by: string | null;
+}
+
+function rowToPage(r: PageRow): InfoPage {
+  return {
+    id: r.id,
+    slug: r.slug,
+    title: r.title,
+    content: r.content,
+    metaDescription: r.meta_description ?? undefined,
+    published: r.published,
+    isSystem: r.is_system,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+    updatedBy: r.updated_by ?? undefined,
+  };
+}
+
+export const pageStore = {
+  async list(): Promise<InfoPage[]> {
+    const { data, error } = await getSupabaseAdmin()
+      .from(T_PAGES)
+      .select("*")
+      .order("title", { ascending: true });
+    if (error) throw error;
+    return (data as PageRow[] | null)?.map(rowToPage) ?? [];
+  },
+
+  async findById(idOrSlug: string): Promise<InfoPage | undefined> {
+    const { data, error } = await getSupabaseAdmin()
+      .from(T_PAGES)
+      .select("*")
+      .or(`id.eq.${idOrSlug},slug.eq.${idOrSlug}`)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToPage(data as PageRow) : undefined;
+  },
+
+  async save(p: InfoPage): Promise<InfoPage> {
+    const { error } = await getSupabaseAdmin()
+      .from(T_PAGES)
+      .upsert(
+        {
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          content: p.content,
+          meta_description: p.metaDescription ?? null,
+          published: p.published,
+          is_system: p.isSystem,
+          created_at: p.createdAt,
+          updated_at: p.updatedAt,
+          updated_by: p.updatedBy ?? null,
+        },
+        { onConflict: "id" }
+      );
+    if (error) throw error;
+    return p;
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await getSupabaseAdmin().from(T_PAGES).delete().eq("id", id);
+    if (error) throw error;
+  },
+};
+
+export const publicPageStore = {
+  async findBySlug(slug: string): Promise<InfoPage | undefined> {
+    const { data, error } = await getSupabaseAnon()
+      .from(T_PAGES)
+      .select("*")
+      .eq("slug", slug)
+      .eq("published", true)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToPage(data as PageRow) : undefined;
   },
 };

@@ -67,6 +67,19 @@ export interface Campaign {
   createdAt: string;
 }
 
+export interface InfoPage {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  metaDescription?: string;
+  published: boolean;
+  isSystem: boolean;
+  createdAt: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
 export interface ReportPhoto {
   url: string;
   caption?: string;

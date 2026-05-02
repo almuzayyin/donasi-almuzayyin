@@ -1,5 +1,13 @@
 import Link from "next/link";
 
+function PaymentBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="px-2.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-semibold text-slate-700 shadow-sm">
+      {children}
+    </span>
+  );
+}
+
 export default function PublicLayout({
   children,
 }: {
@@ -36,8 +44,8 @@ export default function PublicLayout({
       </header>
       <main className="flex-1">{children}</main>
       <footer className="border-t border-slate-200 bg-white py-8 sm:py-10 mt-12 sm:mt-16">
-        <div className="mx-auto max-w-6xl px-5 sm:px-6 grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-sm">
-          <div>
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-sm">
+          <div className="col-span-2 md:col-span-1">
             <p className="font-bold text-primary">Yayasan Islam Al Muzayyin</p>
             <p className="mt-1 text-slate-600">Gadung, Indonesia</p>
             <p className="mt-2 text-slate-500 text-xs">
@@ -54,15 +62,51 @@ export default function PublicLayout({
             </ul>
           </div>
           <div>
-            <p className="font-semibold text-slate-700 mb-2">Akuntabilitas</p>
-            <p className="text-slate-600 mb-2">
-              <Link href="/transparansi" className="text-primary hover:underline font-medium">
-                Lihat Laporan Penyaluran →
-              </Link>
-            </p>
-            <p className="text-slate-600 text-xs">Transaksi diproses oleh Midtrans dengan enkripsi end-to-end. Mendukung VA, e-wallet, kartu kredit, dan QRIS.</p>
+            <p className="font-semibold text-slate-700 mb-2">Yayasan</p>
+            <ul className="space-y-1 text-slate-600">
+              <li><Link href="/tentang" className="hover:text-primary">Tentang Kami</Link></li>
+              <li><Link href="/kontak" className="hover:text-primary">Kontak</Link></li>
+              <li><Link href="/transparansi" className="hover:text-primary">Transparansi</Link></li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-semibold text-slate-700 mb-2">Legal</p>
+            <ul className="space-y-1 text-slate-600">
+              <li><Link href="/kebijakan-privasi" className="hover:text-primary">Kebijakan Privasi</Link></li>
+              <li><Link href="/syarat-ketentuan" className="hover:text-primary">Syarat &amp; Ketentuan</Link></li>
+              <li><Link href="/pengembalian-dana" className="hover:text-primary">Pengembalian Dana</Link></li>
+            </ul>
           </div>
         </div>
+
+        {/* Payment Methods */}
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 mt-8 pt-6 border-t border-slate-100">
+          <p className="text-xs font-semibold text-slate-700 mb-3 text-center md:text-left">
+            🔒 Pembayaran Aman Diproses oleh
+          </p>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-md text-xs font-semibold text-slate-700 border border-slate-200">
+              <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+              Midtrans
+            </span>
+            <PaymentBadge>Visa</PaymentBadge>
+            <PaymentBadge>Mastercard</PaymentBadge>
+            <PaymentBadge>JCB</PaymentBadge>
+            <PaymentBadge>BCA</PaymentBadge>
+            <PaymentBadge>Mandiri</PaymentBadge>
+            <PaymentBadge>BNI</PaymentBadge>
+            <PaymentBadge>BRI</PaymentBadge>
+            <PaymentBadge>GoPay</PaymentBadge>
+            <PaymentBadge>OVO</PaymentBadge>
+            <PaymentBadge>DANA</PaymentBadge>
+            <PaymentBadge>ShopeePay</PaymentBadge>
+            <PaymentBadge>QRIS</PaymentBadge>
+          </div>
+          <p className="mt-3 text-xs text-slate-500 text-center md:text-left">
+            Semua transaksi dienkripsi end-to-end. Data kartu kredit tidak pernah disimpan di server kami.
+          </p>
+        </div>
+
         <div className="mx-auto max-w-6xl px-5 sm:px-6 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-100 text-xs text-slate-500 text-center">
           © {new Date().getFullYear()} Yayasan Islam Al Muzayyin Gadung. Seluruh donasi tersalur dengan transparan.
         </div>

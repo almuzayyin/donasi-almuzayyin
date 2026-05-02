@@ -6,6 +6,7 @@ const navItems = [
   { href: "/admin/donations", label: "Donasi", icon: "💰" },
   { href: "/admin/campaigns", label: "Program", icon: "🗂️" },
   { href: "/admin/reports", label: "Laporan", icon: "📋" },
+  { href: "/admin/pages", label: "Halaman", icon: "📄" },
   { href: "/admin/users", label: "Admin Users", icon: "👥" },
   { href: "/admin/logs", label: "Webhook Logs", icon: "📜" },
   { href: "/admin/settings", label: "Settings", icon: "⚙️" },
