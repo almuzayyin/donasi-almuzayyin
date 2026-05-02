@@ -67,6 +67,21 @@ export interface Campaign {
   createdAt: string;
 }
 
+export interface PopupMessage {
+  id: string;
+  donorName: string;
+  donorLocation?: string;
+  amount?: number;
+  campaignId?: string;
+  type: "uang" | "mushaf";
+  customMessage?: string;
+  displayAt: string;
+  showUntil?: string;
+  active: boolean;
+  createdAt: string;
+  createdBy?: string;
+}
+
 export interface InfoPage {
   id: string;
   slug: string;

@@ -5,6 +5,7 @@ import type {
   DonationReport,
   InfoPage,
   MushafDonation,
+  PopupMessage,
   ReportExpense,
   ReportPhoto,
 } from "./types.js";
@@ -58,6 +59,7 @@ const T_PAYMENT_LOGS = "donasi_payment_logs";
 const T_REPORTS = "donasi_reports";
 const T_EXPENSES = "donasi_report_expenses";
 const T_PAGES = "donasi_pages";
+const T_POPUPS = "donasi_popup_messages";
 
 function rowToCampaign(r: CampaignRow): Campaign {
   return {
@@ -626,5 +628,105 @@ export const publicPageStore = {
       .maybeSingle();
     if (error) throw error;
     return data ? rowToPage(data as PageRow) : undefined;
+  },
+};
+
+// ==========================================================================
+// Popup Messages (Manual popup untuk social proof)
+// ==========================================================================
+
+interface PopupRow {
+  id: string;
+  donor_name: string;
+  donor_location: string | null;
+  amount: number | null;
+  campaign_id: string | null;
+  type: "uang" | "mushaf";
+  custom_message: string | null;
+  display_at: string;
+  show_until: string | null;
+  active: boolean;
+  created_at: string;
+  created_by: string | null;
+}
+
+function rowToPopup(r: PopupRow): PopupMessage {
+  return {
+    id: r.id,
+    donorName: r.donor_name,
+    donorLocation: r.donor_location ?? undefined,
+    amount: r.amount ?? undefined,
+    campaignId: r.campaign_id ?? undefined,
+    type: r.type,
+    customMessage: r.custom_message ?? undefined,
+    displayAt: r.display_at,
+    showUntil: r.show_until ?? undefined,
+    active: r.active,
+    createdAt: r.created_at,
+    createdBy: r.created_by ?? undefined,
+  };
+}
+
+export const popupStore = {
+  async list(): Promise<PopupMessage[]> {
+    const { data, error } = await getSupabaseAdmin()
+      .from(T_POPUPS)
+      .select("*")
+      .order("display_at", { ascending: false });
+    if (error) throw error;
+    return (data as PopupRow[] | null)?.map(rowToPopup) ?? [];
+  },
+
+  async findById(id: string): Promise<PopupMessage | undefined> {
+    const { data, error } = await getSupabaseAdmin()
+      .from(T_POPUPS)
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToPopup(data as PopupRow) : undefined;
+  },
+
+  async save(p: PopupMessage): Promise<PopupMessage> {
+    const { error } = await getSupabaseAdmin()
+      .from(T_POPUPS)
+      .upsert(
+        {
+          id: p.id,
+          donor_name: p.donorName,
+          donor_location: p.donorLocation ?? null,
+          amount: p.amount ?? null,
+          campaign_id: p.campaignId ?? null,
+          type: p.type,
+          custom_message: p.customMessage ?? null,
+          display_at: p.displayAt,
+          show_until: p.showUntil ?? null,
+          active: p.active,
+          created_at: p.createdAt,
+          created_by: p.createdBy ?? null,
+        },
+        { onConflict: "id" }
+      );
+    if (error) throw error;
+    return p;
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await getSupabaseAdmin().from(T_POPUPS).delete().eq("id", id);
+    if (error) throw error;
+  },
+};
+
+// Public read-only — pakai anon dengan RLS filter (active=true & not expired)
+export const publicPopupStore = {
+  async listActive(limit: number = 30): Promise<PopupMessage[]> {
+    const { data, error } = await getSupabaseAnon()
+      .from(T_POPUPS)
+      .select("*")
+      .eq("active", true)
+      .order("display_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data as PopupRow[] | null)?.map(rowToPopup) ?? [];
   },
 };
