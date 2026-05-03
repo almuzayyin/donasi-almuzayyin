@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { publicCampaignStore, publicReportStore } from "@lib/storage";
+import { publicCampaignStore, publicDonationFeed, publicReportStore } from "@lib/storage";
 
 const idr = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
@@ -12,7 +12,12 @@ export default async function TransparansiPage({ searchParams }: Props) {
   const params = await searchParams;
   const filterSlug = params.campaign;
 
-  const campaigns = await publicCampaignStore.listActive();
+  const [campaigns, stats, recentDonations] = await Promise.all([
+    publicCampaignStore.listActive(),
+    publicDonationFeed.getStats(),
+    publicDonationFeed.listRecent(12),
+  ]);
+
   const filterCampaign = filterSlug ? campaigns.find((c) => c.slug === filterSlug) : undefined;
 
   const reports = await publicReportStore.listPublished({
@@ -21,13 +26,17 @@ export default async function TransparansiPage({ searchParams }: Props) {
   });
   const campaignMap = new Map(campaigns.map((c) => [c.id, c]));
 
-  // Aggregate stats per campaign
+  // Aggregate distributed per campaign (dari laporan)
   const aggregates = new Map<string, number>();
   for (const r of reports) {
     if (r.campaignId && r.amountUsed) {
       aggregates.set(r.campaignId, (aggregates.get(r.campaignId) ?? 0) + r.amountUsed);
     }
   }
+  const totalDistributed = Array.from(aggregates.values()).reduce((s, v) => s + v, 0);
+  const distributedPct = stats.totalCollected > 0
+    ? Math.min(100, (totalDistributed / stats.totalCollected) * 100)
+    : 0;
 
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-6 py-8 sm:py-12">
@@ -38,6 +47,30 @@ export default async function TransparansiPage({ searchParams }: Props) {
           Setiap rupiah amanah Anda kami pertanggungjawabkan. Berikut bukti dan rincian
           penggunaan dana donasi Yayasan Islam Al Muzayyin.
         </p>
+      </div>
+
+      {/* Overview Stats — semua donasi paid (termasuk donasi umum tanpa campaign) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+        <div className="card !p-4">
+          <p className="text-xs text-slate-500">Total Terkumpul</p>
+          <p className="mt-1 text-lg sm:text-xl font-bold text-primary">{idr(stats.totalCollected)}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Semua donasi paid</p>
+        </div>
+        <div className="card !p-4">
+          <p className="text-xs text-slate-500">Tersalurkan</p>
+          <p className="mt-1 text-lg sm:text-xl font-bold text-primary">{idr(totalDistributed)}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">{distributedPct.toFixed(0)}% dari terkumpul</p>
+        </div>
+        <div className="card !p-4">
+          <p className="text-xs text-slate-500">Total Donatur</p>
+          <p className="mt-1 text-lg sm:text-xl font-bold text-primary">{stats.donorCount}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">Transaksi paid</p>
+        </div>
+        <div className="card !p-4">
+          <p className="text-xs text-slate-500">Mushaf Terwakafkan</p>
+          <p className="mt-1 text-lg sm:text-xl font-bold text-primary">{stats.mushafQuantity}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">eksemplar</p>
+        </div>
       </div>
 
       {/* Filter */}
@@ -90,12 +123,44 @@ export default async function TransparansiPage({ searchParams }: Props) {
         </div>
       )}
 
+      {/* Donasi Terbaru — bukti riil donasi masuk (termasuk donasi umum) */}
+      {!filterSlug && recentDonations.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg sm:text-xl font-bold">Donasi Terbaru</h2>
+            <span className="text-xs text-slate-500">{recentDonations.length} terakhir</span>
+          </div>
+          <div className="card !p-0 overflow-hidden">
+            <ul className="divide-y divide-slate-100">
+              {recentDonations.map((d, i) => (
+                <li key={`${d.paidAt}-${i}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900 truncate">{d.donor}</p>
+                    <p className="text-[11px] text-slate-500 truncate">
+                      {d.campaign ? d.campaign : "Donasi umum"}
+                      {" · "}
+                      {new Date(d.paidAt).toLocaleDateString("id-ID", {
+                        day: "2-digit", month: "short", year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <span className="font-bold text-primary whitespace-nowrap">{idr(d.amount)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       {/* Reports list */}
+      <h2 className="text-lg sm:text-xl font-bold mb-4">
+        {filterSlug ? `Laporan ${filterCampaign?.title ?? ""}` : "Laporan Penyaluran"}
+      </h2>
       {reports.length === 0 ? (
         <div className="card text-center text-slate-500 py-12">
           {filterSlug
             ? "Belum ada laporan untuk program ini."
-            : "Belum ada laporan penyaluran. Cek kembali nanti."}
+            : "Belum ada laporan penyaluran. Yayasan akan publikasikan setelah dana disalurkan."}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">

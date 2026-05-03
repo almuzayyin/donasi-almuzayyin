@@ -473,6 +473,33 @@ export const publicDonationFeed = {
     }));
   },
 
+  async getStats(): Promise<{
+    totalCollected: number;
+    donorCount: number;
+    donationCount: number;
+    mushafQuantity: number;
+  }> {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from(T_DONATIONS)
+      .select("amount, type, quantity")
+      .eq("status", "paid");
+    if (error) throw error;
+    const rows = (data ?? []) as Array<{ amount: number; type: string; quantity: number | null }>;
+    let totalCollected = 0;
+    let mushafQuantity = 0;
+    for (const r of rows) {
+      totalCollected += r.amount ?? 0;
+      if (r.type === "mushaf" && r.quantity) mushafQuantity += r.quantity;
+    }
+    return {
+      totalCollected,
+      donorCount: rows.length,
+      donationCount: rows.length,
+      mushafQuantity,
+    };
+  },
+
   async listSince(sinceIso: string): Promise<PublicDonationItem[]> {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
