@@ -1,6 +1,10 @@
 import Link from "next/link";
 import DonationFeedPopup from "./DonationFeedPopup";
 
+// Public pages fetch dari DB (campaigns, reports, pages) — render dinamis tiap request.
+// Ini juga mencegah build gagal kalau env Supabase belum di-set.
+export const dynamic = "force-dynamic";
+
 function PaymentBadge({ children }: { children: React.ReactNode }) {
   return (
     <span className="px-2.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-semibold text-slate-700 shadow-sm">
