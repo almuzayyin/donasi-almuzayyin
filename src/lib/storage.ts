@@ -1,5 +1,6 @@
 import { getSupabaseAdmin, getSupabaseAnon } from "./supabase.js";
 import type {
+  AppSetting,
   Campaign,
   Donation,
   DonationReport,
@@ -60,6 +61,7 @@ const T_REPORTS = "donasi_reports";
 const T_EXPENSES = "donasi_report_expenses";
 const T_PAGES = "donasi_pages";
 const T_POPUPS = "donasi_popup_messages";
+const T_SETTINGS = "donasi_settings";
 
 function rowToCampaign(r: CampaignRow): Campaign {
   return {
@@ -728,5 +730,94 @@ export const publicPopupStore = {
       .limit(limit);
     if (error) throw error;
     return (data as PopupRow[] | null)?.map(rowToPopup) ?? [];
+  },
+};
+
+// ==========================================================================
+// Settings (Konfigurasi App — editable via /admin/settings)
+// ==========================================================================
+
+interface SettingRow {
+  key: string;
+  value: string;
+  description: string | null;
+  is_public: boolean;
+  updated_at: string;
+  updated_by: string | null;
+}
+
+function rowToSetting(r: SettingRow): AppSetting {
+  return {
+    key: r.key,
+    value: r.value,
+    description: r.description ?? undefined,
+    isPublic: r.is_public,
+    updatedAt: r.updated_at,
+    updatedBy: r.updated_by ?? undefined,
+  };
+}
+
+export const settingsStore = {
+  async list(): Promise<AppSetting[]> {
+    const { data, error } = await getSupabaseAdmin()
+      .from(T_SETTINGS)
+      .select("*")
+      .order("key", { ascending: true });
+    if (error) throw error;
+    return (data as SettingRow[] | null)?.map(rowToSetting) ?? [];
+  },
+
+  async get(key: string): Promise<string | null> {
+    const { data, error } = await getSupabaseAdmin()
+      .from(T_SETTINGS)
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
+    if (error) throw error;
+    return data?.value ?? null;
+  },
+
+  async getInt(key: string, fallback: number): Promise<number> {
+    try {
+      const v = await this.get(key);
+      const n = v ? parseInt(v, 10) : NaN;
+      return Number.isFinite(n) ? n : fallback;
+    } catch {
+      return fallback;
+    }
+  },
+
+  async set(key: string, value: string, by?: string): Promise<void> {
+    const { error } = await getSupabaseAdmin()
+      .from(T_SETTINGS)
+      .upsert(
+        {
+          key,
+          value,
+          updated_at: new Date().toISOString(),
+          updated_by: by ?? null,
+        },
+        { onConflict: "key" }
+      );
+    if (error) throw error;
+  },
+};
+
+export const publicSettingsStore = {
+  async get(key: string): Promise<string | null> {
+    const { data, error } = await getSupabaseAnon()
+      .from(T_SETTINGS)
+      .select("value")
+      .eq("key", key)
+      .eq("is_public", true)
+      .maybeSingle();
+    if (error) return null;
+    return data?.value ?? null;
+  },
+
+  async getInt(key: string, fallback: number): Promise<number> {
+    const v = await this.get(key);
+    const n = v ? parseInt(v, 10) : NaN;
+    return Number.isFinite(n) ? n : fallback;
   },
 };

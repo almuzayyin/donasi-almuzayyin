@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { getAdminSession } from "@/lib/admin-auth";
-import { donationStore, campaignStore } from "@lib/storage";
+import { donationStore, campaignStore, settingsStore } from "@lib/storage";
 import { sendReceiptEmail } from "@lib/email";
 
 export const runtime = "nodejs";
-
-const MUSHAF_UNIT_PRICE = Number(process.env.MUSHAF_UNIT_PRICE || 85_000);
 
 const schema = z.discriminatedUnion("type", [
   z.object({
@@ -59,7 +57,8 @@ export async function POST(req: NextRequest) {
     const id = randomUUID();
     const orderId = makeOrderId();
 
-    const amount = body.type === "uang" ? body.amount : body.quantity * MUSHAF_UNIT_PRICE;
+    const mushafPrice = await settingsStore.getInt("mushaf_unit_price", 85_000);
+    const amount = body.type === "uang" ? body.amount : body.quantity * mushafPrice;
 
     const baseDonation = {
       id,
@@ -78,7 +77,7 @@ export async function POST(req: NextRequest) {
     };
 
     const donation = body.type === "mushaf"
-      ? { ...baseDonation, type: "mushaf" as const, quantity: body.quantity, unitPrice: MUSHAF_UNIT_PRICE }
+      ? { ...baseDonation, type: "mushaf" as const, quantity: body.quantity, unitPrice: mushafPrice }
       : { ...baseDonation, type: "uang" as const };
 
     await donationStore.save(donation);

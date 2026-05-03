@@ -1,4 +1,4 @@
-import { publicCampaignStore } from "@lib/storage";
+import { publicCampaignStore, publicSettingsStore } from "@lib/storage";
 import DonationForm from "./DonationForm";
 
 interface Props {
@@ -21,7 +21,7 @@ export default async function DonasiPage({ searchParams }: Props) {
 
   const initialType: "uang" | "mushaf" = params.type === "mushaf" ? "mushaf" : "uang";
   const selectedCampaign = campaigns.find((c) => c.slug === params.campaign);
-  const mushafUnitPrice = Number(process.env.MUSHAF_UNIT_PRICE || 85_000);
+  const mushafUnitPrice = await publicSettingsStore.getInt("mushaf_unit_price", 85_000);
   const midtransClientKey = process.env.MIDTRANS_CLIENT_KEY || "";
   const midtransIsProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
 

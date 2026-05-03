@@ -1,12 +1,15 @@
 import { requireAdmin } from "@/lib/admin-auth";
+import { settingsStore } from "@lib/storage";
+import SettingsForm from "./SettingsForm";
 
 export default async function SettingsPage() {
   const user = await requireAdmin();
+  const settings = await settingsStore.list();
 
-  const items: { label: string; value: string; secret?: boolean }[] = [
+  // Runtime config (read-only, not editable from UI)
+  const runtimeInfo: { label: string; value: string; secret?: boolean }[] = [
     { label: "Login sebagai", value: user.email },
     { label: "Admin Email Allowlist", value: process.env.ADMIN_EMAILS || "(belum di-set)" },
-    { label: "Mushaf Unit Price", value: `Rp ${Number(process.env.MUSHAF_UNIT_PRICE || 85000).toLocaleString("id-ID")}` },
     { label: "Database URL", value: process.env.SUPABASE_URL || "-" },
     { label: "Service Role Key", value: process.env.SUPABASE_SERVICE_ROLE_KEY ? "✓ Configured" : "✗ Belum di-set", secret: true },
     { label: "Midtrans Mode", value: process.env.MIDTRANS_IS_PRODUCTION === "true" ? "Production" : "Sandbox" },
@@ -17,17 +20,32 @@ export default async function SettingsPage() {
   ];
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-4xl">
       <div className="mb-5 sm:mb-6">
         <h1 className="page-title">Settings</h1>
         <p className="text-slate-600 mt-1 text-sm sm:text-base">
-          Konfigurasi runtime (read-only, edit via <code className="text-xs bg-slate-100 px-1 rounded">.env.local</code>)
+          Konfigurasi yang bisa diubah dari panel & info runtime read-only.
         </p>
       </div>
 
+      {/* Editable settings dari DB */}
+      <div className="card mb-6">
+        <h2 className="font-bold text-lg mb-1">Konfigurasi Aplikasi</h2>
+        <p className="text-sm text-slate-600 mb-4">
+          Setting di sini disimpan di database dan langsung berlaku tanpa redeploy.
+        </p>
+        <SettingsForm initial={settings} />
+      </div>
+
+      {/* Runtime info — read-only */}
       <div className="card">
+        <h2 className="font-bold text-lg mb-1">Runtime Info (Read-only)</h2>
+        <p className="text-sm text-slate-600 mb-4">
+          Konfigurasi server-side (env vars). Edit via Vercel dashboard untuk produksi atau{" "}
+          <code className="text-xs bg-slate-100 px-1 rounded">.env.local</code> untuk local dev.
+        </p>
         <dl className="divide-y divide-slate-100">
-          {items.map((item) => (
+          {runtimeInfo.map((item) => (
             <div key={item.label} className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-3 text-sm">
               <dt className="font-medium text-slate-700">{item.label}</dt>
               <dd className={`break-words ${item.secret ? "font-mono text-xs" : ""}`}>{item.value}</dd>
@@ -38,16 +56,12 @@ export default async function SettingsPage() {
 
       <div className="mt-6 card bg-amber-50 border-amber-200">
         <h2 className="font-bold mb-2">👥 Manajemen Admin</h2>
-        <p className="text-sm text-slate-700 mb-3">
-          Tambah, lihat, dan hapus admin langsung dari halaman{" "}
+        <p className="text-sm text-slate-700">
+          Tambah, lihat, dan hapus admin di halaman{" "}
           <a href="/admin/users" className="text-primary underline font-semibold">
             Admin Users
           </a>
-          . Semua bisa dikelola dari halaman admin ini.
-        </p>
-        <p className="text-xs text-slate-600">
-          Email di <code className="bg-white px-1 rounded">ADMIN_EMAILS</code> tetap berlaku
-          sebagai bootstrap allowlist (tidak bisa dihapus dari panel — edit env file kalau perlu).
+          .
         </p>
       </div>
     </div>

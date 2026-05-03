@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin-auth";
-import { campaignStore } from "@lib/storage";
+import { campaignStore, settingsStore } from "@lib/storage";
 import ManualDonationForm from "./ManualDonationForm";
 
 export default async function NewManualDonationPage() {
@@ -8,7 +8,7 @@ export default async function NewManualDonationPage() {
   const campaigns = (await campaignStore.list()).map((c) => ({
     id: c.id, title: c.title, type: c.type,
   }));
-  const mushafUnitPrice = Number(process.env.MUSHAF_UNIT_PRICE || 85_000);
+  const mushafUnitPrice = await settingsStore.getInt("mushaf_unit_price", 85_000);
 
   return (
     <div className="max-w-3xl">

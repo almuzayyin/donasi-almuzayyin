@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { campaignStore, donationStore, paymentLogStore } from "./storage.js";
+import { campaignStore, donationStore, paymentLogStore, settingsStore } from "./storage.js";
 import {
   cancelTransaction,
   createSnapTransaction,
@@ -17,7 +17,9 @@ import type {
   PaymentNotification,
 } from "./types.js";
 
-const MUSHAF_UNIT_PRICE = Number(process.env.MUSHAF_UNIT_PRICE || 85000);
+async function getMushafUnitPrice(): Promise<number> {
+  return settingsStore.getInt("mushaf_unit_price", 85000);
+}
 
 const donorSchema = z.object({
   name: z.string().min(1),
@@ -106,7 +108,7 @@ export async function createMushafDonation(
 ): Promise<{ donation: MushafDonation; paymentUrl: string; paymentToken: string }> {
   const id = randomUUID();
   const orderId = makeOrderId("MSF");
-  const unitPrice = input.unitPrice ?? MUSHAF_UNIT_PRICE;
+  const unitPrice = input.unitPrice ?? (await getMushafUnitPrice());
   const amount = unitPrice * input.quantity;
 
   const donation: MushafDonation = {

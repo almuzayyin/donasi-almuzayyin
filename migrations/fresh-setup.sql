@@ -121,6 +121,15 @@ CREATE TABLE IF NOT EXISTS public.donasi_pages (
 );
 CREATE INDEX IF NOT EXISTS idx_donasi_pages_slug ON public.donasi_pages(slug);
 
+CREATE TABLE IF NOT EXISTS public.donasi_settings (
+  key         TEXT PRIMARY KEY,
+  value       TEXT NOT NULL,
+  description TEXT,
+  is_public   BOOLEAN NOT NULL DEFAULT FALSE,
+  updated_at  TEXT NOT NULL,
+  updated_by  TEXT
+);
+
 CREATE TABLE IF NOT EXISTS public.donasi_popup_messages (
   id              TEXT PRIMARY KEY,
   donor_name      TEXT NOT NULL,
@@ -147,6 +156,11 @@ ALTER TABLE public.donasi_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.donasi_report_expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.donasi_pages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.donasi_popup_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.donasi_settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "donasi_settings_public_read" ON public.donasi_settings;
+CREATE POLICY "donasi_settings_public_read" ON public.donasi_settings
+  FOR SELECT USING (is_public = TRUE);
 
 -- Public read policies
 DROP POLICY IF EXISTS "donasi_campaigns_public_read" ON public.donasi_campaigns;
@@ -270,6 +284,17 @@ VALUES
  'Kebijakan pengembalian dana donasi.',
  TRUE, TRUE, now()::text, now()::text, 'system')
 ON CONFLICT (slug) DO NOTHING;
+
+-- ===== 6. SEED DATA — DEFAULT SETTINGS =======================================
+
+INSERT INTO public.donasi_settings (key, value, description, is_public, updated_at, updated_by)
+VALUES
+  ('mushaf_unit_price', '85000', 'Harga satuan mushaf Al-Qur''an dalam IDR (untuk wakaf mushaf)', TRUE, now()::text, 'system'),
+  ('yayasan_name', 'Yayasan Islam Al Muzayyin Gadung', 'Nama lengkap yayasan untuk display & email', TRUE, now()::text, 'system'),
+  ('yayasan_short_name', 'Al Muzayyin', 'Nama pendek yayasan', TRUE, now()::text, 'system'),
+  ('contact_email', 'donasi@al-muzayyin.org', 'Email resmi yayasan untuk donatur', TRUE, now()::text, 'system'),
+  ('contact_phone', '', 'Nomor WhatsApp/telepon yayasan', TRUE, now()::text, 'system')
+ON CONFLICT (key) DO NOTHING;
 
 -- =============================================================================
 -- SELESAI

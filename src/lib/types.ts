@@ -67,6 +67,15 @@ export interface Campaign {
   createdAt: string;
 }
 
+export interface AppSetting {
+  key: string;
+  value: string;
+  description?: string;
+  isPublic: boolean;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
 export interface PopupMessage {
   id: string;
   donorName: string;
