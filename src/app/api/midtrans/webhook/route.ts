@@ -29,8 +29,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Zod schema di handleWebhook akan validate runtime; cast dari Record agar TS lulus.
     const result = await handleWebhook({
-      notification,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      notification: notification as any,
       verifySignature: true,
     });
     return NextResponse.json({ ok: true, status: result.donation.status });
