@@ -4,6 +4,20 @@ import type { Donation } from "./types.js";
 const idr = (n: number) =>
   new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(n);
 
+/**
+ * HTML-escape user-controlled input agar tidak di-render sebagai HTML
+ * di email client. Mencegah XSS via donor name, message, dst.
+ */
+function escapeHtml(s: string | null | undefined): string {
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export interface EmailMessage {
   to: string;
   subject: string;
@@ -19,6 +33,13 @@ export interface EmailMessage {
 export function buildReceiptEmail(donation: Donation): EmailMessage {
   const donorName = donation.donor.anonymous ? "Hamba Allah" : donation.donor.name;
   const isMushaf = donation.type === "mushaf";
+
+  // Escape user-controlled values untuk HTML template (XSS-safe)
+  const safeDonorName = escapeHtml(donorName);
+  const safeOrderId = escapeHtml(donation.orderId);
+  const safePaidAt = escapeHtml(donation.paidAt ?? donation.updatedAt);
+  const safeMethod = escapeHtml(donation.paymentMethod ?? "-");
+  const safeQuantity = escapeHtml(String((donation as any).quantity ?? ""));
 
   const subject = `Tanda Terima Donasi - ${donation.orderId}`;
   const text = [
@@ -44,15 +65,15 @@ export function buildReceiptEmail(donation: Donation): EmailMessage {
   const html = `
     <div style="font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
       <h2 style="color:#0f5132;margin:0 0 16px">Tanda Terima Donasi</h2>
-      <p>Assalamu'alaikum <strong>${donorName}</strong>,</p>
+      <p>Assalamu'alaikum <strong>${safeDonorName}</strong>,</p>
       <p>Kami telah menerima donasi Anda. Berikut detailnya:</p>
       <table style="width:100%;border-collapse:collapse;margin:16px 0">
-        <tr><td style="padding:8px;border-bottom:1px solid #e2e8f0"><strong>Order ID</strong></td><td style="padding:8px;border-bottom:1px solid #e2e8f0">${donation.orderId}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #e2e8f0"><strong>Order ID</strong></td><td style="padding:8px;border-bottom:1px solid #e2e8f0">${safeOrderId}</td></tr>
         <tr><td style="padding:8px;border-bottom:1px solid #e2e8f0"><strong>Jenis</strong></td><td style="padding:8px;border-bottom:1px solid #e2e8f0">${isMushaf ? "Wakaf Mushaf" : "Donasi Uang"}</td></tr>
-        ${isMushaf ? `<tr><td style="padding:8px;border-bottom:1px solid #e2e8f0"><strong>Jumlah</strong></td><td style="padding:8px;border-bottom:1px solid #e2e8f0">${(donation as any).quantity} eksemplar</td></tr>` : ""}
+        ${isMushaf ? `<tr><td style="padding:8px;border-bottom:1px solid #e2e8f0"><strong>Jumlah</strong></td><td style="padding:8px;border-bottom:1px solid #e2e8f0">${safeQuantity} eksemplar</td></tr>` : ""}
         <tr><td style="padding:8px;border-bottom:1px solid #e2e8f0"><strong>Total</strong></td><td style="padding:8px;border-bottom:1px solid #e2e8f0">${idr(donation.amount)}</td></tr>
-        <tr><td style="padding:8px;border-bottom:1px solid #e2e8f0"><strong>Tanggal</strong></td><td style="padding:8px;border-bottom:1px solid #e2e8f0">${donation.paidAt ?? donation.updatedAt}</td></tr>
-        <tr><td style="padding:8px"><strong>Metode</strong></td><td style="padding:8px">${donation.paymentMethod ?? "-"}</td></tr>
+        <tr><td style="padding:8px;border-bottom:1px solid #e2e8f0"><strong>Tanggal</strong></td><td style="padding:8px;border-bottom:1px solid #e2e8f0">${safePaidAt}</td></tr>
+        <tr><td style="padding:8px"><strong>Metode</strong></td><td style="padding:8px">${safeMethod}</td></tr>
       </table>
       <p>Jazaakumullahu khairan atas donasinya.<br>Semoga menjadi amal jariyah yang menerangi.</p>
       <p style="margin-top:24px;color:#475569;font-size:13px">— Yayasan Islam Al Muzayyin Gadung</p>
@@ -67,6 +88,16 @@ export function buildAdminNotificationEmail(donation: Donation, to: string): Ema
   const isMushaf = donation.type === "mushaf";
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://yayasanislamalmuzayin.com";
+
+  // Escape user-controlled values untuk HTML template (XSS-safe)
+  const safeDonorName = escapeHtml(donorName);
+  const safeEmail = escapeHtml(donation.donor.email);
+  const safePhone = escapeHtml(donation.donor.phone ?? "");
+  const safeOrderId = escapeHtml(donation.orderId);
+  const safePaidAt = escapeHtml(donation.paidAt ?? donation.updatedAt);
+  const safeMethod = escapeHtml(donation.paymentMethod ?? "-");
+  const safeMessage = escapeHtml(donation.message ?? "");
+  const safeQuantity = escapeHtml(String((donation as any).quantity ?? ""));
 
   const subject = `🎉 Donasi Masuk - ${donorName} - ${idr(donation.amount)}`;
   const text = [
@@ -91,21 +122,21 @@ export function buildAdminNotificationEmail(donation: Donation, to: string): Ema
     <div style="font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
       <div style="background:#0f5132;color:white;padding:16px;border-radius:8px 8px 0 0">
         <h2 style="margin:0;font-size:20px">🎉 Donasi Masuk</h2>
-        <p style="margin:4px 0 0;opacity:0.9">${idr(donation.amount)}${isMushaf ? ` · ${(donation as any).quantity} mushaf` : ""}</p>
+        <p style="margin:4px 0 0;opacity:0.9">${idr(donation.amount)}${isMushaf ? ` · ${safeQuantity} mushaf` : ""}</p>
       </div>
       <div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:16px">
         <table style="width:100%;border-collapse:collapse">
-          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Donatur</td><td style="padding:6px 0;font-weight:600">${donorName}</td></tr>
-          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Email</td><td style="padding:6px 0">${donation.donor.email}</td></tr>
-          ${donation.donor.phone ? `<tr><td style="padding:6px 0;color:#64748b;font-size:13px">Telepon</td><td style="padding:6px 0">${donation.donor.phone}</td></tr>` : ""}
-          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Jenis</td><td style="padding:6px 0">${isMushaf ? `Wakaf Mushaf (${(donation as any).quantity} eksemplar)` : "Donasi Uang"}</td></tr>
-          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Tanggal</td><td style="padding:6px 0">${donation.paidAt ?? donation.updatedAt}</td></tr>
-          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Metode</td><td style="padding:6px 0">${donation.paymentMethod ?? "-"}</td></tr>
-          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Order ID</td><td style="padding:6px 0;font-family:monospace;font-size:12px">${donation.orderId}</td></tr>
-          ${donation.message ? `<tr><td style="padding:6px 0;color:#64748b;font-size:13px;vertical-align:top">Pesan</td><td style="padding:6px 0;font-style:italic">${donation.message}</td></tr>` : ""}
+          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Donatur</td><td style="padding:6px 0;font-weight:600">${safeDonorName}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Email</td><td style="padding:6px 0">${safeEmail}</td></tr>
+          ${donation.donor.phone ? `<tr><td style="padding:6px 0;color:#64748b;font-size:13px">Telepon</td><td style="padding:6px 0">${safePhone}</td></tr>` : ""}
+          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Jenis</td><td style="padding:6px 0">${isMushaf ? `Wakaf Mushaf (${safeQuantity} eksemplar)` : "Donasi Uang"}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Tanggal</td><td style="padding:6px 0">${safePaidAt}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Metode</td><td style="padding:6px 0">${safeMethod}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Order ID</td><td style="padding:6px 0;font-family:monospace;font-size:12px">${safeOrderId}</td></tr>
+          ${donation.message ? `<tr><td style="padding:6px 0;color:#64748b;font-size:13px;vertical-align:top">Pesan</td><td style="padding:6px 0;font-style:italic">${safeMessage}</td></tr>` : ""}
         </table>
         <p style="margin-top:16px">
-          <a href="${siteUrl}/admin/donations/${donation.orderId}" style="background:#0f5132;color:white;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block;font-weight:600;font-size:14px">Lihat Detail</a>
+          <a href="${siteUrl}/admin/donations/${encodeURIComponent(donation.orderId)}" style="background:#0f5132;color:white;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block;font-weight:600;font-size:14px">Lihat Detail</a>
         </p>
       </div>
       <p style="margin-top:24px;color:#94a3b8;font-size:12px;text-align:center">Email otomatis dari sistem donasi Yayasan Al Muzayyin</p>
