@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { getAdminSession } from "@/lib/admin-auth";
 import { donationStore, campaignStore, settingsStore } from "@lib/storage";
-import { sendReceiptEmail } from "@lib/email";
+import { sendAdminNotificationEmail, sendReceiptEmail } from "@lib/email";
 
 export const runtime = "nodejs";
 
@@ -97,7 +97,10 @@ export async function POST(req: NextRequest) {
 
     // Kirim email tanda terima (kalau gagal, jangan rollback transaksi)
     sendReceiptEmail(donation).catch((err) =>
-      console.error("[manual donation] email gagal:", err)
+      console.error("[manual donation] receipt gagal:", err)
+    );
+    sendAdminNotificationEmail(donation).catch((err) =>
+      console.error("[manual donation] admin notif gagal:", err)
     );
 
     return NextResponse.json({ ok: true, donation });

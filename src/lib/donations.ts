@@ -8,7 +8,7 @@ import {
   mapTransactionStatus,
   verifySignature,
 } from "./payment.js";
-import { sendReceiptEmail } from "./email.js";
+import { sendAdminNotificationEmail, sendReceiptEmail } from "./email.js";
 import type {
   Campaign,
   Donation,
@@ -213,7 +213,10 @@ export async function checkPaymentStatus(
     if (donation.campaignId) await recomputeCampaign(donation.campaignId);
     if (newStatus === "paid" && !wasPaid) {
       await sendReceiptEmail(donation).catch((e) =>
-        console.error("[email] gagal kirim:", e)
+        console.error("[email] receipt gagal:", e)
+      );
+      await sendAdminNotificationEmail(donation).catch((e) =>
+        console.error("[email] admin notif gagal:", e)
       );
     }
   }
@@ -291,7 +294,10 @@ export async function handleWebhook(
   if (donation.campaignId) await recomputeCampaign(donation.campaignId);
   if (newStatus === "paid" && !wasPaid) {
     await sendReceiptEmail(donation).catch((e) =>
-      console.error("[email] gagal kirim:", e)
+      console.error("[email] receipt gagal:", e)
+    );
+    await sendAdminNotificationEmail(donation).catch((e) =>
+      console.error("[email] admin notif gagal:", e)
     );
   }
 

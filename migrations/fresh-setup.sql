@@ -293,7 +293,8 @@ VALUES
   ('yayasan_name', 'Yayasan Islam Al Muzayyin Gadung', 'Nama lengkap yayasan untuk display & email', TRUE, now()::text, 'system'),
   ('yayasan_short_name', 'Al Muzayyin', 'Nama pendek yayasan', TRUE, now()::text, 'system'),
   ('contact_email', 'donasi@al-muzayyin.org', 'Email resmi yayasan untuk donatur', TRUE, now()::text, 'system'),
-  ('contact_phone', '', 'Nomor WhatsApp/telepon yayasan', TRUE, now()::text, 'system')
+  ('contact_phone', '', 'Nomor WhatsApp/telepon yayasan', TRUE, now()::text, 'system'),
+  ('notification_email', 'info@yayasanislamalmuzayin.com', 'Email yang menerima notifikasi setiap donasi paid masuk', FALSE, now()::text, 'system')
 ON CONFLICT (key) DO NOTHING;
 
 -- =============================================================================
