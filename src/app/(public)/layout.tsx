@@ -38,6 +38,9 @@ export default function PublicLayout({
             <Link href="/transparansi" className="hidden md:inline text-sm text-slate-600 hover:text-primary">
               Transparansi
             </Link>
+            <Link href="/legalitas" className="hidden lg:inline text-sm text-slate-600 hover:text-primary">
+              Legalitas
+            </Link>
             <Link href="/#tentang" className="hidden md:inline text-sm text-slate-600 hover:text-primary">
               Tentang
             </Link>
@@ -72,6 +75,7 @@ export default function PublicLayout({
             <ul className="space-y-1 text-slate-600">
               <li><Link href="/tentang" className="hover:text-primary">Tentang Kami</Link></li>
               <li><Link href="/kontak" className="hover:text-primary">Kontak</Link></li>
+              <li><Link href="/legalitas" className="hover:text-primary">Legalitas</Link></li>
               <li><Link href="/transparansi" className="hover:text-primary">Transparansi</Link></li>
             </ul>
           </div>
@@ -82,6 +86,28 @@ export default function PublicLayout({
               <li><Link href="/syarat-ketentuan" className="hover:text-primary">Syarat &amp; Ketentuan</Link></li>
               <li><Link href="/pengembalian-dana" className="hover:text-primary">Pengembalian Dana</Link></li>
             </ul>
+          </div>
+        </div>
+
+        {/* Bank Resmi Yayasan */}
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 mt-6 sm:mt-8 pt-6 border-t border-slate-100">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm">
+            <div>
+              <p className="font-semibold text-slate-700 mb-2">🏦 Rekening Resmi</p>
+              <p className="text-slate-600 leading-relaxed">
+                <strong>Bank Mandiri</strong> (KCP Surabaya Pakuwon City)<br />
+                <span className="font-mono">140-00-3993992-2</span><br />
+                a.n. Yayasan Islam Al Muzayyin Gadung
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-slate-700 mb-2">⚖️ Badan Hukum</p>
+              <p className="text-slate-600 leading-relaxed text-xs">
+                Yayasan disahkan oleh Kementerian Hukum dan HAM RI<br />
+                <strong>SK</strong>: AHU-0017282.AH.01.04.Tahun 2023<br />
+                <Link href="/legalitas" className="text-primary hover:underline">Lihat dokumen legal lengkap →</Link>
+              </p>
+            </div>
           </div>
         </div>
 

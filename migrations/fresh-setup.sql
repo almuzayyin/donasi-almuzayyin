@@ -294,7 +294,16 @@ VALUES
   ('yayasan_short_name', 'Al Muzayyin', 'Nama pendek yayasan', TRUE, now()::text, 'system'),
   ('contact_email', 'donasi@al-muzayyin.org', 'Email resmi yayasan untuk donatur', TRUE, now()::text, 'system'),
   ('contact_phone', '', 'Nomor WhatsApp/telepon yayasan', TRUE, now()::text, 'system'),
-  ('notification_email', 'info@yayasanislamalmuzayin.com', 'Email yang menerima notifikasi setiap donasi paid masuk', FALSE, now()::text, 'system')
+  ('notification_email', 'info@yayasanislamalmuzayin.com', 'Email yang menerima notifikasi setiap donasi paid masuk', FALSE, now()::text, 'system'),
+  ('bank_name', 'Bank Mandiri (KCP Surabaya Pakuwon City)', 'Bank rekening yayasan untuk transfer manual', TRUE, now()::text, 'system'),
+  ('bank_account_number', '140-00-3993992-2', 'Nomor rekening yayasan', TRUE, now()::text, 'system'),
+  ('bank_account_name', 'Yayasan Islam Al Muzayyin Gadung', 'Nama pemilik rekening', TRUE, now()::text, 'system'),
+  ('yayasan_address', 'Jl. Gadung 1, RT 003 RW 001, Desa Gadung, Kec. Driyorejo, Kab. Gresik 61177, Jawa Timur', 'Alamat lengkap sekretariat yayasan', TRUE, now()::text, 'system'),
+  ('legal_akta', 'Nomor 10, tanggal 11 Oktober 2023 (Notaris Roma Sukmawati, S.H., M.Kn.)', 'Akta Notaris pendirian', TRUE, now()::text, 'system'),
+  ('legal_sk_menkumham', 'AHU-0017282.AH.01.04.Tahun 2023', 'Nomor SK Menkumham', TRUE, now()::text, 'system'),
+  ('legal_daftar_yayasan', 'AHU-0024997.AH.01.12.Tahun 2023', 'Nomor Daftar Yayasan', TRUE, now()::text, 'system'),
+  ('legal_surat_domisili', '470/493/437.108.16/2023', 'Nomor Surat Domisili', TRUE, now()::text, 'system'),
+  ('pic_name', 'Muhammad Lukman Hakim', 'Penanggung jawab / Ketua Pengurus', TRUE, now()::text, 'system')
 ON CONFLICT (key) DO NOTHING;
 
 -- =============================================================================
