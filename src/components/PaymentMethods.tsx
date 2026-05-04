@@ -54,30 +54,32 @@ export default function PaymentMethods() {
       </div>
 
       {/* Grouped logo grid — pakai logo asli dari /public/payment-logos/
-          dengan fallback stylized SVG kalau file belum di-drop */}
+          dengan fallback stylized SVG (children) kalau file belum di-drop.
+          Children pattern dipakai biar React element serializable lewat
+          Server → Client component boundary. */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
         <Group label="Kartu">
-          <PaymentLogo slug="visa" alt="Visa" fallback={VisaLogo} />
-          <PaymentLogo slug="mastercard" alt="Mastercard" fallback={MastercardLogo} />
-          <PaymentLogo slug="jcb" alt="JCB" fallback={JcbLogo} />
+          <PaymentLogo slug="visa" alt="Visa"><VisaLogo /></PaymentLogo>
+          <PaymentLogo slug="mastercard" alt="Mastercard"><MastercardLogo /></PaymentLogo>
+          <PaymentLogo slug="jcb" alt="JCB"><JcbLogo /></PaymentLogo>
         </Group>
 
         <Group label="Transfer Bank">
-          <PaymentLogo slug="bca" alt="BCA" fallback={BcaLogo} />
-          <PaymentLogo slug="mandiri" alt="Bank Mandiri" fallback={MandiriLogo} />
-          <PaymentLogo slug="bni" alt="BNI" fallback={BniLogo} />
-          <PaymentLogo slug="bri" alt="BRI" fallback={BriLogo} />
+          <PaymentLogo slug="bca" alt="BCA"><BcaLogo /></PaymentLogo>
+          <PaymentLogo slug="mandiri" alt="Bank Mandiri"><MandiriLogo /></PaymentLogo>
+          <PaymentLogo slug="bni" alt="BNI"><BniLogo /></PaymentLogo>
+          <PaymentLogo slug="bri" alt="BRI"><BriLogo /></PaymentLogo>
         </Group>
 
         <Group label="E-Wallet">
-          <PaymentLogo slug="gopay" alt="GoPay" fallback={GoPayLogo} />
-          <PaymentLogo slug="ovo" alt="OVO" fallback={OvoLogo} />
-          <PaymentLogo slug="dana" alt="DANA" fallback={DanaLogo} />
-          <PaymentLogo slug="shopeepay" alt="ShopeePay" fallback={ShopeePayLogo} />
+          <PaymentLogo slug="gopay" alt="GoPay"><GoPayLogo /></PaymentLogo>
+          <PaymentLogo slug="ovo" alt="OVO"><OvoLogo /></PaymentLogo>
+          <PaymentLogo slug="dana" alt="DANA"><DanaLogo /></PaymentLogo>
+          <PaymentLogo slug="shopeepay" alt="ShopeePay"><ShopeePayLogo /></PaymentLogo>
         </Group>
 
         <Group label="QR Code">
-          <PaymentLogo slug="qris" alt="QRIS" fallback={QrisLogo} />
+          <PaymentLogo slug="qris" alt="QRIS"><QrisLogo /></PaymentLogo>
         </Group>
       </div>
 

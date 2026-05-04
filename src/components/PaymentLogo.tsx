@@ -2,38 +2,32 @@
  * Payment logo dengan fallback chain:
  *   1. /public/payment-logos/{slug}.svg  ← prioritas utama (logo asli SVG)
  *   2. /public/payment-logos/{slug}.png  ← fallback PNG
- *   3. Stylized inline SVG component     ← fallback terakhir kalau file ga ada
+ *   3. children (stylized inline SVG)    ← fallback terakhir kalau file ga ada
  *
  * Tambah/ganti logo asli tanpa redeploy code: cukup drop file ke
- * /public/payment-logos/. File dengan slug yang sama auto-replace
- * fallback stylized.
+ * /public/payment-logos/. File dengan slug yang sama auto-replace fallback.
  *
- * Sumber logo resmi (rekomendasi):
- * - Visa:        usa.visa.com/run-your-business/small-business-tools/.../visa-brand-resources
- * - Mastercard:  brand.mastercard.com
- * - JCB:         global.jcb/en/about-us/brand-concept/
- * - BCA/Mandiri/BNI/BRI: situs resmi atau Midtrans docs payment-channel-icon
- * - GoPay/OVO/DANA/ShopeePay/QRIS: brand kit masing-masing
- * - Midtrans accepts you to use their bundled payment icons:
- *   docs.midtrans.com → Payment Methods → Logo Assets
+ * Catatan: pakai `children` (bukan komponen sebagai prop) supaya bisa
+ * di-render dari Server Component — React element serializable lewat
+ * server/client boundary, function reference tidak.
  */
 "use client";
 
 import { useState } from "react";
-import type { ComponentType } from "react";
+import type { ReactNode } from "react";
 
 interface PaymentLogoProps {
   slug: string;
   alt: string;
-  fallback: ComponentType;
+  children: ReactNode; // fallback content (mis. <VisaLogo />)
 }
 
-export default function PaymentLogo({ slug, alt, fallback: Fallback }: PaymentLogoProps) {
-  // 0: try .svg, 1: try .png, 2+: use fallback component
+export default function PaymentLogo({ slug, alt, children }: PaymentLogoProps) {
+  // 0: try .svg, 1: try .png, 2: render children fallback
   const [stage, setStage] = useState<0 | 1 | 2>(0);
 
   if (stage === 2) {
-    return <Fallback />;
+    return <>{children}</>;
   }
 
   const ext = stage === 0 ? "svg" : "png";
