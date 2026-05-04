@@ -4,6 +4,8 @@ import type {
   Campaign,
   Donation,
   DonationReport,
+  Gallery,
+  GalleryCategory,
   InfoPage,
   MushafDonation,
   PopupMessage,
@@ -62,6 +64,7 @@ const T_EXPENSES = "donasi_report_expenses";
 const T_PAGES = "donasi_pages";
 const T_POPUPS = "donasi_popup_messages";
 const T_SETTINGS = "donasi_settings";
+const T_GALLERIES = "donasi_galleries";
 
 function rowToCampaign(r: CampaignRow): Campaign {
   return {
@@ -846,5 +849,133 @@ export const publicSettingsStore = {
     const v = await this.get(key);
     const n = v ? parseInt(v, 10) : NaN;
     return Number.isFinite(n) ? n : fallback;
+  },
+
+  async getMany(keys: string[]): Promise<Record<string, string>> {
+    const { data, error } = await getSupabaseAnon()
+      .from(T_SETTINGS)
+      .select("key, value")
+      .in("key", keys)
+      .eq("is_public", true);
+    if (error) return {};
+    const out: Record<string, string> = {};
+    for (const r of (data ?? []) as Array<{ key: string; value: string }>) {
+      out[r.key] = r.value;
+    }
+    return out;
+  },
+};
+
+// =============================================================================
+// Galleries (Foto Kegiatan & Dokumentasi)
+// =============================================================================
+
+interface GalleryRow {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  image_url: string;
+  caption: string | null;
+  taken_at: string | null;
+  location: string | null;
+  sort_order: number;
+  published: boolean;
+  is_document: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+}
+
+function rowToGallery(r: GalleryRow): Gallery {
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description ?? undefined,
+    category: (r.category as GalleryCategory) ?? "umum",
+    imageUrl: r.image_url,
+    caption: r.caption ?? undefined,
+    takenAt: r.taken_at ?? undefined,
+    location: r.location ?? undefined,
+    sortOrder: r.sort_order ?? 0,
+    published: r.published,
+    isDocument: r.is_document,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+    createdBy: r.created_by ?? undefined,
+  };
+}
+
+function galleryToRow(g: Gallery): GalleryRow {
+  return {
+    id: g.id,
+    title: g.title,
+    description: g.description ?? null,
+    category: g.category,
+    image_url: g.imageUrl,
+    caption: g.caption ?? null,
+    taken_at: g.takenAt ?? null,
+    location: g.location ?? null,
+    sort_order: g.sortOrder ?? 0,
+    published: g.published,
+    is_document: g.isDocument,
+    created_at: g.createdAt,
+    updated_at: g.updatedAt,
+    created_by: g.createdBy ?? null,
+  };
+}
+
+export const galleryStore = {
+  async list(): Promise<Gallery[]> {
+    const { data, error } = await getSupabaseAdmin()
+      .from(T_GALLERIES)
+      .select("*")
+      .order("sort_order", { ascending: false })
+      .order("taken_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data as GalleryRow[] | null)?.map(rowToGallery) ?? [];
+  },
+  async findById(id: string): Promise<Gallery | undefined> {
+    const { data, error } = await getSupabaseAdmin()
+      .from(T_GALLERIES)
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToGallery(data as GalleryRow) : undefined;
+  },
+  async save(g: Gallery): Promise<Gallery> {
+    const { error } = await getSupabaseAdmin()
+      .from(T_GALLERIES)
+      .upsert(galleryToRow(g), { onConflict: "id" });
+    if (error) throw error;
+    return g;
+  },
+  async delete(id: string): Promise<void> {
+    const { error } = await getSupabaseAdmin().from(T_GALLERIES).delete().eq("id", id);
+    if (error) throw error;
+  },
+};
+
+export const publicGalleryStore = {
+  async listPublished(opts?: {
+    category?: GalleryCategory;
+    isDocument?: boolean;
+    limit?: number;
+  }): Promise<Gallery[]> {
+    let q = getSupabaseAnon()
+      .from(T_GALLERIES)
+      .select("*")
+      .eq("published", true)
+      .order("sort_order", { ascending: false })
+      .order("taken_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false });
+    if (opts?.category) q = q.eq("category", opts.category);
+    if (typeof opts?.isDocument === "boolean") q = q.eq("is_document", opts.isDocument);
+    if (opts?.limit) q = q.limit(opts.limit);
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data as GalleryRow[] | null)?.map(rowToGallery) ?? [];
   },
 };

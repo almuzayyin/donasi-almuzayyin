@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import SignOutButton from "./SignOutButton";
 import NotificationCenter from "./NotificationCenter";
+import Logo from "@/components/Logo";
 
 interface NavItem {
   href: string;
@@ -37,9 +38,7 @@ export default function PanelShell({ user, navItems, children }: Props) {
       {/* Mobile top bar */}
       <header className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
         <Link href="/admin" className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-white text-lg">
-            ﷽
-          </span>
+          <Logo size={36} className="h-9 w-9" />
           <span className="font-bold text-primary text-sm">Al Muzayyin</span>
         </Link>
         <div className="flex items-center gap-2">
@@ -75,9 +74,7 @@ export default function PanelShell({ user, navItems, children }: Props) {
       >
         <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
           <Link href="/admin" className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-white">
-              ﷽
-            </span>
+            <Logo size={36} className="h-9 w-9" />
             <div className="leading-tight">
               <p className="font-bold text-primary text-sm">Al Muzayyin</p>
               <p className="text-[10px] text-slate-500">Admin Panel</p>

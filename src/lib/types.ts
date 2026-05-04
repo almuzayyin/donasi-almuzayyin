@@ -137,6 +137,32 @@ export interface DonationReport {
   expenses?: ReportExpense[];
 }
 
+export type GalleryCategory =
+  | "tahfidz"
+  | "santunan"
+  | "pembangunan"
+  | "pengajian"
+  | "wakaf"
+  | "dokumentasi"
+  | "umum";
+
+export interface Gallery {
+  id: string;
+  title: string;
+  description?: string;
+  category: GalleryCategory;
+  imageUrl: string;
+  caption?: string;
+  takenAt?: string;
+  location?: string;
+  sortOrder: number;
+  published: boolean;
+  isDocument: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+}
+
 export interface PaymentNotification {
   order_id: string;
   transaction_status: string;

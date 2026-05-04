@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DonationFeedPopup from "./DonationFeedPopup";
+import Logo from "@/components/Logo";
 
 // Public pages fetch dari DB (campaigns, reports, pages) — render dinamis tiap request.
 // Ini juga mencegah build gagal kalau env Supabase belum di-set.
@@ -23,9 +24,7 @@ export default function PublicLayout({
       <header className="border-b border-slate-200 bg-white sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-white/85">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 py-3 sm:py-4 gap-3">
           <Link href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0">
-            <span className="grid h-10 w-10 sm:h-11 sm:w-11 shrink-0 place-items-center rounded-xl bg-primary text-white text-lg sm:text-xl shadow-sm group-hover:bg-primary-dark transition">
-              ﷽
-            </span>
+            <Logo size={44} className="h-10 w-10 sm:h-11 sm:w-11 shrink-0 transition group-hover:scale-105" />
             <span className="leading-tight min-w-0">
               <span className="block font-bold text-primary text-sm sm:text-base truncate">Al Muzayyin</span>
               <span className="block text-[10px] sm:text-[11px] text-slate-500 -mt-0.5 truncate">Yayasan Islam Gadung</span>
@@ -35,13 +34,16 @@ export default function PublicLayout({
             <Link href="/#program" className="hidden md:inline text-sm text-slate-600 hover:text-primary">
               Program
             </Link>
+            <Link href="/galeri" className="hidden md:inline text-sm text-slate-600 hover:text-primary">
+              Galeri
+            </Link>
             <Link href="/transparansi" className="hidden md:inline text-sm text-slate-600 hover:text-primary">
               Transparansi
             </Link>
             <Link href="/legalitas" className="hidden lg:inline text-sm text-slate-600 hover:text-primary">
               Legalitas
             </Link>
-            <Link href="/#tentang" className="hidden md:inline text-sm text-slate-600 hover:text-primary">
+            <Link href="/tentang" className="hidden md:inline text-sm text-slate-600 hover:text-primary">
               Tentang
             </Link>
             <Link href="/donasi" className="btn-primary !px-3 sm:!px-5 !py-2 sm:!py-2.5">
@@ -55,10 +57,15 @@ export default function PublicLayout({
       <footer className="border-t border-slate-200 bg-white py-8 sm:py-10 mt-12 sm:mt-16">
         <div className="mx-auto max-w-6xl px-5 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 text-sm">
           <div className="col-span-2 md:col-span-1">
-            <p className="font-bold text-primary">Yayasan Islam Al Muzayyin</p>
-            <p className="mt-1 text-slate-600">Gadung, Indonesia</p>
-            <p className="mt-2 text-slate-500 text-xs">
-              Sedekah jariyah, amal yang tak terputus.
+            <div className="flex items-center gap-2 mb-2">
+              <Logo size={36} className="h-9 w-9" />
+              <p className="font-bold text-primary leading-tight">
+                Yayasan Islam<br/>Al Muzayyin
+              </p>
+            </div>
+            <p className="mt-1 text-slate-600 text-xs">Gadung, Driyorejo, Gresik</p>
+            <p className="mt-2 text-primary text-xs italic font-medium">
+              Mencetak Generasi Qur&apos;ani
             </p>
           </div>
           <div>
@@ -74,6 +81,7 @@ export default function PublicLayout({
             <p className="font-semibold text-slate-700 mb-2">Yayasan</p>
             <ul className="space-y-1 text-slate-600">
               <li><Link href="/tentang" className="hover:text-primary">Tentang Kami</Link></li>
+              <li><Link href="/galeri" className="hover:text-primary">Galeri Kegiatan</Link></li>
               <li><Link href="/kontak" className="hover:text-primary">Kontak</Link></li>
               <li><Link href="/legalitas" className="hover:text-primary">Legalitas</Link></li>
               <li><Link href="/transparansi" className="hover:text-primary">Transparansi</Link></li>

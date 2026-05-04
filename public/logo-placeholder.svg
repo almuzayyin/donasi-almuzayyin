@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#16a34a"/>
+      <stop offset="1" stop-color="#0f5132"/>
+    </radialGradient>
+  </defs>
+  <!-- Outer petal/star shape -->
+  <path d="M100 8 C 130 14 158 30 175 60 C 188 92 188 108 175 140 C 158 170 130 186 100 192 C 70 186 42 170 25 140 C 12 108 12 92 25 60 C 42 30 70 14 100 8 Z"
+        fill="url(#bg)" stroke="#0a3a23" stroke-width="2"/>
+  <!-- Inner circle ring -->
+  <circle cx="100" cy="100" r="68" fill="#fffbe6" stroke="#16a34a" stroke-width="3"/>
+  <circle cx="100" cy="100" r="62" fill="none" stroke="#16a34a" stroke-width="1" stroke-dasharray="3,2"/>
+  <!-- Stars (8 around) -->
+  <g fill="#facc15">
+    <text x="100" y="48" text-anchor="middle" font-size="14">★</text>
+    <text x="138" y="60" text-anchor="middle" font-size="12">★</text>
+    <text x="158" y="100" text-anchor="middle" font-size="12">★</text>
+    <text x="138" y="140" text-anchor="middle" font-size="12">★</text>
+    <text x="100" y="155" text-anchor="middle" font-size="14">★</text>
+    <text x="62" y="140" text-anchor="middle" font-size="12">★</text>
+    <text x="42" y="100" text-anchor="middle" font-size="12">★</text>
+    <text x="62" y="60" text-anchor="middle" font-size="12">★</text>
+  </g>
+  <!-- Mosque dome -->
+  <path d="M88 88 Q100 72 112 88 L112 100 L88 100 Z" fill="#0f5132"/>
+  <rect x="98" y="74" width="4" height="14" fill="#0f5132"/>
+  <!-- Open book (Quran) -->
+  <path d="M75 105 L100 110 L125 105 L125 122 L100 117 L75 122 Z" fill="#fff" stroke="#a16207" stroke-width="1.5"/>
+  <line x1="100" y1="110" x2="100" y2="117" stroke="#a16207" stroke-width="1"/>
+  <!-- Bottom banner -->
+  <rect x="60" y="148" width="80" height="14" fill="#facc15" stroke="#a16207" stroke-width="1" rx="2"/>
+  <text x="100" y="158" text-anchor="middle" font-size="9" font-weight="bold" fill="#0f5132" font-family="sans-serif">DRIYOREJO</text>
+</svg>

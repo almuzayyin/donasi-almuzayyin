@@ -12,6 +12,7 @@ const navItems = [
   { href: "/admin/finance", label: "Keuangan", icon: "📊" },
   { href: "/admin/reports", label: "Laporan", icon: "📋" },
   { href: "/admin/popups", label: "Popup Manual", icon: "🔔" },
+  { href: "/admin/galleries", label: "Galeri Foto", icon: "🖼️" },
   { href: "/admin/pages", label: "Halaman", icon: "📄" },
   { href: "/admin/users", label: "Admin Users", icon: "👥" },
   { href: "/admin/logs", label: "Webhook Logs", icon: "📜" },
