@@ -5,6 +5,7 @@
  * akurat. Dikelompokkan per tipe untuk hierarchy: Kartu / Transfer Bank /
  * E-Wallet / QR Code.
  */
+import PaymentLogo from "./PaymentLogo";
 import {
   BcaLogo,
   BniLogo,
@@ -52,30 +53,31 @@ export default function PaymentMethods() {
         </div>
       </div>
 
-      {/* Grouped logo grid */}
+      {/* Grouped logo grid — pakai logo asli dari /public/payment-logos/
+          dengan fallback stylized SVG kalau file belum di-drop */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
         <Group label="Kartu">
-          <VisaLogo />
-          <MastercardLogo />
-          <JcbLogo />
+          <PaymentLogo slug="visa" alt="Visa" fallback={VisaLogo} />
+          <PaymentLogo slug="mastercard" alt="Mastercard" fallback={MastercardLogo} />
+          <PaymentLogo slug="jcb" alt="JCB" fallback={JcbLogo} />
         </Group>
 
         <Group label="Transfer Bank">
-          <BcaLogo />
-          <MandiriLogo />
-          <BniLogo />
-          <BriLogo />
+          <PaymentLogo slug="bca" alt="BCA" fallback={BcaLogo} />
+          <PaymentLogo slug="mandiri" alt="Bank Mandiri" fallback={MandiriLogo} />
+          <PaymentLogo slug="bni" alt="BNI" fallback={BniLogo} />
+          <PaymentLogo slug="bri" alt="BRI" fallback={BriLogo} />
         </Group>
 
         <Group label="E-Wallet">
-          <GoPayLogo />
-          <OvoLogo />
-          <DanaLogo />
-          <ShopeePayLogo />
+          <PaymentLogo slug="gopay" alt="GoPay" fallback={GoPayLogo} />
+          <PaymentLogo slug="ovo" alt="OVO" fallback={OvoLogo} />
+          <PaymentLogo slug="dana" alt="DANA" fallback={DanaLogo} />
+          <PaymentLogo slug="shopeepay" alt="ShopeePay" fallback={ShopeePayLogo} />
         </Group>
 
         <Group label="QR Code">
-          <QrisLogo />
+          <PaymentLogo slug="qris" alt="QRIS" fallback={QrisLogo} />
         </Group>
       </div>
 
