@@ -1,18 +1,11 @@
 import Link from "next/link";
 import DonationFeedPopup from "./DonationFeedPopup";
 import Logo from "@/components/Logo";
+import PaymentMethods from "@/components/PaymentMethods";
 
 // Public pages fetch dari DB (campaigns, reports, pages) — render dinamis tiap request.
 // Ini juga mencegah build gagal kalau env Supabase belum di-set.
 export const dynamic = "force-dynamic";
-
-function PaymentBadge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="px-2.5 py-1 bg-white border border-slate-200 rounded text-[11px] font-semibold text-slate-700 shadow-sm">
-      {children}
-    </span>
-  );
-}
 
 export default function PublicLayout({
   children,
@@ -97,54 +90,56 @@ export default function PublicLayout({
           </div>
         </div>
 
-        {/* Bank Resmi Yayasan */}
+        {/* Trust Section: Rekening + Badan Hukum */}
         <div className="mx-auto max-w-6xl px-5 sm:px-6 mt-6 sm:mt-8 pt-6 border-t border-slate-100">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm">
-            <div>
-              <p className="font-semibold text-slate-700 mb-2">🏦 Rekening Resmi</p>
-              <p className="text-slate-600 leading-relaxed">
-                <strong>Bank Mandiri</strong> (KCP Surabaya Pakuwon City)<br />
-                <span className="font-mono">140-00-3993992-2</span><br />
-                a.n. Yayasan Islam Al Muzayyin Gadung
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {/* Rekening */}
+            <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+              <p className="font-semibold text-slate-800 mb-2 flex items-center gap-1.5 text-sm">
+                <span aria-hidden="true">🏦</span> Rekening Resmi Yayasan
               </p>
+              <div className="text-sm leading-relaxed">
+                <p className="font-bold text-slate-900">Bank Mandiri</p>
+                <p className="text-xs text-slate-500 mb-1.5">KCP Surabaya Pakuwon City</p>
+                <p className="font-mono text-base font-semibold text-primary tracking-wider mb-1">
+                  140-00-3993992-2
+                </p>
+                <p className="text-xs text-slate-600">
+                  a.n. Yayasan Islam Al Muzayyin Gadung
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-slate-700 mb-2">⚖️ Badan Hukum</p>
-              <p className="text-slate-600 leading-relaxed text-xs">
-                Yayasan disahkan oleh Kementerian Hukum dan HAM RI<br />
-                <strong>SK</strong>: AHU-0017282.AH.01.04.Tahun 2023<br />
-                <Link href="/legalitas" className="text-primary hover:underline">Lihat dokumen legal lengkap →</Link>
+
+            {/* Badan Hukum */}
+            <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+              <p className="font-semibold text-slate-800 mb-2 flex items-center gap-1.5 text-sm">
+                <span aria-hidden="true">⚖️</span> Berbadan Hukum Resmi
               </p>
+              <div className="text-sm leading-relaxed">
+                <p className="text-xs text-slate-600 mb-1.5">
+                  Disahkan oleh Kementerian Hukum dan HAM RI
+                </p>
+                <p className="text-xs">
+                  <span className="text-slate-500">SK Menkumham:</span>{" "}
+                  <span className="font-mono font-semibold text-slate-900">
+                    AHU-0017282.AH.01.04.Tahun 2023
+                  </span>
+                </p>
+                <Link
+                  href="/legalitas"
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  Lihat dokumen legal lengkap
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Payment Methods */}
         <div className="mx-auto max-w-6xl px-5 sm:px-6 mt-8 pt-6 border-t border-slate-100">
-          <p className="text-xs font-semibold text-slate-700 mb-3 text-center md:text-left">
-            🔒 Pembayaran Aman Diproses oleh
-          </p>
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-md text-xs font-semibold text-slate-700 border border-slate-200">
-              <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-              Midtrans
-            </span>
-            <PaymentBadge>Visa</PaymentBadge>
-            <PaymentBadge>Mastercard</PaymentBadge>
-            <PaymentBadge>JCB</PaymentBadge>
-            <PaymentBadge>BCA</PaymentBadge>
-            <PaymentBadge>Mandiri</PaymentBadge>
-            <PaymentBadge>BNI</PaymentBadge>
-            <PaymentBadge>BRI</PaymentBadge>
-            <PaymentBadge>GoPay</PaymentBadge>
-            <PaymentBadge>OVO</PaymentBadge>
-            <PaymentBadge>DANA</PaymentBadge>
-            <PaymentBadge>ShopeePay</PaymentBadge>
-            <PaymentBadge>QRIS</PaymentBadge>
-          </div>
-          <p className="mt-3 text-xs text-slate-500 text-center md:text-left">
-            Semua transaksi dienkripsi end-to-end. Data kartu kredit tidak pernah disimpan di server kami.
-          </p>
+          <PaymentMethods />
         </div>
 
         <div className="mx-auto max-w-6xl px-5 sm:px-6 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-100 text-xs text-slate-500 text-center">
