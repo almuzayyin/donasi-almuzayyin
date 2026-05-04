@@ -48,7 +48,7 @@ export default function PaymentMethods() {
         </p>
         <div className="flex items-center gap-2 text-[11px] text-slate-500">
           <span>Diproses oleh</span>
-          <PaymentLogo slug="midtrans" alt="Midtrans"><MidtransLogo /></PaymentLogo>
+          <PaymentLogo slug="midtrans" alt="Midtrans" variant="lg"><MidtransLogo /></PaymentLogo>
           <span className="hidden sm:inline">— PCI DSS Level 1 Certified</span>
         </div>
       </div>
