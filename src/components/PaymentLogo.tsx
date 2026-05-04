@@ -4,14 +4,15 @@
  *   2. /public/payment-logos/{slug}.png  ← fallback PNG
  *   3. children                          ← stylized inline SVG fallback
  *
- * Sizing dirancang ringkas — height kecil + max-width cap supaya logo
- * dengan aspect ratio bervariasi (square icon, landscape wordmark) tetap
- * proporsional dan tidak ngebanjirin column footer.
+ * Pakai inline style (bukan Tailwind class) untuk sizing supaya tidak
+ * kena CSS specificity issue. Logo PNG dari Figma library biasanya
+ * punya internal padding + card bg → kita kasih slot fixed-size kecil
+ * supaya tidak ngebanjirin footer.
  */
 "use client";
 
 import { useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 interface PaymentLogoProps {
   slug: string;
@@ -20,11 +21,20 @@ interface PaymentLogoProps {
   variant?: "default" | "lg";
 }
 
-const SIZES: Record<NonNullable<PaymentLogoProps["variant"]>, string> = {
-  // Logo footer (12 payment methods di grid)
-  default: "h-6 sm:h-7 w-auto max-w-[52px] sm:max-w-[60px]",
-  // Midtrans header — sedikit lebih lebar untuk wordmark
-  lg: "h-5 sm:h-6 w-auto max-w-[72px] sm:max-w-[84px]",
+// Inline style — guaranteed apply, no Tailwind class purge surprises
+const STYLE: Record<NonNullable<PaymentLogoProps["variant"]>, CSSProperties> = {
+  default: {
+    height: 32,
+    width: "auto",
+    maxWidth: 64,
+    objectFit: "contain",
+  },
+  lg: {
+    height: 24,
+    width: "auto",
+    maxWidth: 80,
+    objectFit: "contain",
+  },
 };
 
 export default function PaymentLogo({
@@ -33,7 +43,6 @@ export default function PaymentLogo({
   children,
   variant = "default",
 }: PaymentLogoProps) {
-  // 0: try .svg, 1: try .png, 2: render children fallback
   const [stage, setStage] = useState<0 | 1 | 2>(0);
 
   if (stage === 2) {
@@ -46,7 +55,7 @@ export default function PaymentLogo({
     <img
       src={`/payment-logos/${slug}.${ext}`}
       alt={alt}
-      className={`${SIZES[variant]} object-contain`}
+      style={STYLE[variant]}
       loading="lazy"
       onError={() => setStage((s) => (s + 1) as 0 | 1 | 2)}
     />
