@@ -15,7 +15,6 @@ import {
   JcbLogo,
   MandiriLogo,
   MastercardLogo,
-  MidtransLogo,
   OvoLogo,
   QrisLogo,
   ShopeePayLogo,
@@ -46,11 +45,11 @@ export default function PaymentMethods() {
         <p className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 whitespace-nowrap">
           🔒 Pembayaran Aman & Tepercaya
         </p>
-        <div className="flex items-center gap-2 text-[11px] text-slate-500">
-          <span>Diproses oleh</span>
-          <PaymentLogo slug="midtrans" alt="Midtrans" variant="lg"><MidtransLogo /></PaymentLogo>
-          <span className="hidden sm:inline">— PCI DSS Level 1 Certified</span>
-        </div>
+        <p className="text-[11px] text-slate-500">
+          Diproses oleh{" "}
+          <span className="font-semibold text-slate-700">Midtrans</span>
+          <span className="hidden sm:inline"> — PCI DSS Level 1 Certified</span>
+        </p>
       </div>
 
       {/* Grouped logo grid — pakai logo asli dari /public/payment-logos/
