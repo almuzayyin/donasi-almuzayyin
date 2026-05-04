@@ -58,12 +58,31 @@ export default function GalleryForm({ initial, mode }: Props) {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   function update<K extends keyof FormData>(key: K, value: FormData[K]) {
     setData((prev) => ({ ...prev, [key]: value }));
   }
 
+  const ALLOWED = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+  const MAX_BYTES = 5 * 1024 * 1024;
+
+  function validateFile(file: File): string | null {
+    if (!ALLOWED.includes(file.type)) {
+      return `Format tidak didukung: ${file.type || "unknown"} (PNG/JPG/WebP/GIF saja)`;
+    }
+    if (file.size > MAX_BYTES) {
+      return `File terlalu besar (${(file.size / 1024 / 1024).toFixed(1)}MB, max 5MB)`;
+    }
+    return null;
+  }
+
   async function onUpload(file: File) {
+    const err = validateFile(file);
+    if (err) {
+      setError(err);
+      return;
+    }
     setUploading(true);
     setError(null);
     try {
@@ -78,6 +97,34 @@ export default function GalleryForm({ initial, mode }: Props) {
     } finally {
       setUploading(false);
     }
+  }
+
+  function onDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) onUpload(file);
+  }
+
+  function onDragOver(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragOver) setDragOver(true);
+  }
+
+  function onDragLeave(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+  }
+
+  // Paste image from clipboard (Ctrl+V) — bonus UX
+  async function onPaste(e: React.ClipboardEvent<HTMLDivElement>) {
+    const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith("image/"));
+    if (!item) return;
+    const file = item.getAsFile();
+    if (file) onUpload(file);
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -133,17 +180,32 @@ export default function GalleryForm({ initial, mode }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-5 max-w-3xl">
-      {/* Upload Foto */}
+      {/* Upload Foto — drag & drop + click + paste */}
       <div className="card">
         <label className="label">Foto *</label>
         {data.imageUrl ? (
-          <div className="space-y-2">
-            <img
-              src={data.imageUrl}
-              alt="Preview"
-              className="max-h-64 rounded border border-slate-200"
-            />
-            <div className="flex gap-2">
+          <div
+            className={`space-y-2 rounded-lg p-2 transition ${
+              dragOver ? "ring-2 ring-primary ring-offset-2 bg-primary/5" : ""
+            }`}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onPaste={onPaste}
+          >
+            <div className="relative">
+              <img
+                src={data.imageUrl}
+                alt="Preview"
+                className="max-h-64 rounded border border-slate-200"
+              />
+              {dragOver && (
+                <div className="absolute inset-0 grid place-items-center bg-primary/80 text-white font-semibold rounded pointer-events-none">
+                  📥 Drop untuk ganti foto
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -159,17 +221,63 @@ export default function GalleryForm({ initial, mode }: Props) {
               >
                 Hapus
               </button>
+              <span className="text-xs text-slate-500 ml-auto">
+                💡 Drag-drop / paste (Ctrl+V) foto baru untuk ganti
+              </span>
             </div>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="w-full border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-primary transition"
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if ((e.key === "Enter" || e.key === " ") && !uploading) {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onPaste={onPaste}
+            aria-busy={uploading}
+            aria-disabled={uploading}
+            className={`w-full border-2 border-dashed rounded-lg p-8 sm:p-12 text-center transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary ${
+              dragOver
+                ? "border-primary bg-primary/10 scale-[1.01]"
+                : uploading
+                ? "border-slate-200 bg-slate-50 cursor-wait"
+                : "border-slate-300 hover:border-primary hover:bg-slate-50"
+            }`}
           >
-            {uploading ? "Mengunggah..." : "📸 Klik untuk pilih foto (max 5MB)"}
-          </button>
+            {uploading ? (
+              <div className="flex flex-col items-center gap-2">
+                <div className="h-8 w-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <p className="text-sm font-medium text-slate-700">Mengunggah...</p>
+              </div>
+            ) : dragOver ? (
+              <div className="flex flex-col items-center gap-2 pointer-events-none">
+                <span className="text-5xl">📥</span>
+                <p className="font-semibold text-primary">Drop foto di sini</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2 pointer-events-none">
+                <span className="text-4xl sm:text-5xl">📸</span>
+                <p className="font-semibold text-slate-700">
+                  Drag & drop foto ke sini
+                </p>
+                <p className="text-xs text-slate-500">
+                  atau{" "}
+                  <span className="text-primary underline">klik untuk pilih</span>
+                  {" "}/ paste (Ctrl+V)
+                </p>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  PNG, JPG, WebP, GIF · max 5MB
+                </p>
+              </div>
+            )}
+          </div>
         )}
         <input
           ref={fileInputRef}
@@ -179,6 +287,8 @@ export default function GalleryForm({ initial, mode }: Props) {
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) onUpload(f);
+            // reset value supaya bisa upload file yang sama lagi
+            e.target.value = "";
           }}
         />
       </div>
