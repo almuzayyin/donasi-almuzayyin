@@ -33,7 +33,7 @@ function Group({ label, children }: GroupProps) {
       <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
         {label}
       </p>
-      <div className="flex flex-wrap gap-1.5 sm:gap-2 items-center">{children}</div>
+      <div className="flex flex-wrap gap-2 sm:gap-2.5 items-center">{children}</div>
     </div>
   );
 }
