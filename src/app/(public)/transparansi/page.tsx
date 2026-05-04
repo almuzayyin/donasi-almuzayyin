@@ -12,18 +12,30 @@ export default async function TransparansiPage({ searchParams }: Props) {
   const params = await searchParams;
   const filterSlug = params.campaign;
 
-  const [campaigns, stats, recentDonations] = await Promise.all([
+  // Resilient fetch — kalau salah satu source gagal, fallback ke default
+  // (mis. tabel donasi_galleries / migrations belum di-apply).
+  const [campaignsRes, statsRes, recentRes] = await Promise.allSettled([
     publicCampaignStore.listActive(),
     publicDonationFeed.getStats(),
     publicDonationFeed.listRecent(12),
   ]);
+  const campaigns = campaignsRes.status === "fulfilled" ? campaignsRes.value : [];
+  const stats = statsRes.status === "fulfilled" ? statsRes.value : {
+    totalCollected: 0, donorCount: 0, donationCount: 0, mushafQuantity: 0,
+  };
+  const recentDonations = recentRes.status === "fulfilled" ? recentRes.value : [];
 
   const filterCampaign = filterSlug ? campaigns.find((c) => c.slug === filterSlug) : undefined;
 
-  const reports = await publicReportStore.listPublished({
-    campaignId: filterCampaign?.id,
-    limit: 60,
-  });
+  let reports: Awaited<ReturnType<typeof publicReportStore.listPublished>> = [];
+  try {
+    reports = await publicReportStore.listPublished({
+      campaignId: filterCampaign?.id,
+      limit: 60,
+    });
+  } catch (err) {
+    console.warn("[/transparansi] reports not loaded:", err);
+  }
   const campaignMap = new Map(campaigns.map((c) => [c.id, c]));
 
   // Aggregate distributed per campaign (dari laporan)

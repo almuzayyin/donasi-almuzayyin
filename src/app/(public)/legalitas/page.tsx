@@ -15,11 +15,20 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LegalitasPage() {
-  const [page, documents] = await Promise.all([
-    publicPageStore.findBySlug("legalitas"),
-    publicGalleryStore.listPublished({ isDocument: true, limit: 50 }),
-  ]);
+  const page = await publicPageStore.findBySlug("legalitas");
   if (!page) notFound();
+
+  // Tabel donasi_galleries optional (migration 005). Kalau belum ada,
+  // halaman tetap render konten markdown-nya.
+  let documents: Awaited<ReturnType<typeof publicGalleryStore.listPublished>> = [];
+  try {
+    documents = await publicGalleryStore.listPublished({
+      isDocument: true,
+      limit: 50,
+    });
+  } catch (err) {
+    console.warn("[/legalitas] galleries not available:", err);
+  }
 
   return (
     <>

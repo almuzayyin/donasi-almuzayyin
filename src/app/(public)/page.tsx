@@ -18,21 +18,44 @@ export default async function HomePage() {
   let distributedMap = new Map<string, number>();
   let recentGallery: Gallery[] = [];
   let tagline = "Mencetak Generasi Qur'ani";
+
+  // Fetch terpisah supaya satu source gagal nggak ngebunuh source lain.
+  // Mis. tabel donasi_galleries belum di-apply migrasi → tetap render
+  // campaigns + tagline dengan baik.
   try {
-    const [c, g, t] = await Promise.all([
-      publicCampaignStore.listActive(),
-      publicGalleryStore.listPublished({ isDocument: false, limit: 8 }),
-      publicSettingsStore.get("tagline"),
-    ]);
-    campaigns = c;
-    recentGallery = g;
-    if (t) tagline = t;
-    const distributedResults = await Promise.all(
-      campaigns.map((c) => publicReportStore.sumDistributedByCampaign(c.id))
-    );
-    campaigns.forEach((c, i) => distributedMap.set(c.id, distributedResults[i]));
+    campaigns = await publicCampaignStore.listActive();
   } catch (err) {
-    console.error("[landing] gagal load campaigns/galeri:", err);
+    console.error("[landing] gagal load campaigns:", err);
+  }
+
+  if (campaigns.length > 0) {
+    try {
+      const distributedResults = await Promise.all(
+        campaigns.map((c) =>
+          publicReportStore.sumDistributedByCampaign(c.id).catch(() => 0)
+        )
+      );
+      campaigns.forEach((c, i) => distributedMap.set(c.id, distributedResults[i]));
+    } catch (err) {
+      console.error("[landing] gagal load distributed sums:", err);
+    }
+  }
+
+  try {
+    recentGallery = await publicGalleryStore.listPublished({
+      isDocument: false,
+      limit: 8,
+    });
+  } catch (err) {
+    // Diam-diam — tabel mungkin belum dibuat (migration 005)
+    console.warn("[landing] galeri tidak tersedia:", err);
+  }
+
+  try {
+    const t = await publicSettingsStore.get("tagline");
+    if (t) tagline = t;
+  } catch (err) {
+    console.warn("[landing] tagline setting not loaded:", err);
   }
 
   return (

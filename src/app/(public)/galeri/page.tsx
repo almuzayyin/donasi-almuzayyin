@@ -39,11 +39,16 @@ export default async function GaleriPage({ searchParams }: Props) {
   const params = await searchParams;
   const kategori = (params.kategori ?? "") as GalleryCategory | "";
 
-  const items = await publicGalleryStore.listPublished({
-    isDocument: false,
-    category: kategori || undefined,
-    limit: 200,
-  });
+  let items: Awaited<ReturnType<typeof publicGalleryStore.listPublished>> = [];
+  try {
+    items = await publicGalleryStore.listPublished({
+      isDocument: false,
+      category: kategori || undefined,
+      limit: 200,
+    });
+  } catch (err) {
+    console.warn("[/galeri] tabel galeri belum tersedia (migration 005):", err);
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-5 sm:px-6 py-8 sm:py-12">

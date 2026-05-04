@@ -14,16 +14,20 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function TentangPage() {
-  const [page, chairman] = await Promise.all([
-    publicPageStore.findBySlug("tentang"),
-    publicSettingsStore.getMany([
+  const page = await publicPageStore.findBySlug("tentang");
+  if (!page) notFound();
+
+  let chairman: Record<string, string> = {};
+  try {
+    chairman = await publicSettingsStore.getMany([
       "chairman_name",
       "chairman_title",
       "chairman_photo_url",
       "tagline",
-    ]),
-  ]);
-  if (!page) notFound();
+    ]);
+  } catch (err) {
+    console.warn("[/tentang] settings not loaded:", err);
+  }
 
   const photoUrl = chairman.chairman_photo_url || "";
   const chairmanName = chairman.chairman_name || "Muhammad Lukman Hakim Al Hafidz";
