@@ -91,13 +91,19 @@ export default function MobileMenu() {
         </svg>
       </button>
 
-      {/* Backdrop */}
+      {/* Backdrop — pakai inline style biar bg-black/opacity guaranteed apply */}
       <div
         onClick={() => setOpen(false)}
         aria-hidden="true"
-        className={`md:hidden fixed inset-0 z-40 bg-black transition-opacity duration-200 ${
-          open ? "opacity-50 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
+        className="md:hidden"
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 40,
+          backgroundColor: open ? "rgba(0, 0, 0, 0.55)" : "rgba(0, 0, 0, 0)",
+          pointerEvents: open ? "auto" : "none",
+          transition: "background-color 200ms ease-out",
+        }}
       />
 
       {/* Drawer */}
@@ -106,9 +112,19 @@ export default function MobileMenu() {
         role="dialog"
         aria-modal="true"
         aria-label="Menu navigasi"
-        className={`md:hidden fixed top-0 right-0 z-50 h-screen w-[85%] max-w-[340px] bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className="md:hidden bg-white shadow-2xl flex flex-col"
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          zIndex: 50,
+          height: "100vh",
+          width: "85%",
+          maxWidth: 340,
+          transform: open ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+          willChange: "transform",
+        }}
       >
         {/* Header drawer */}
         <div className="flex items-center justify-between gap-3 px-4 py-4 border-b border-slate-200 shrink-0">
