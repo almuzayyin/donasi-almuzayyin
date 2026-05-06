@@ -61,10 +61,14 @@ export default function MobileMenu() {
       {/* Hamburger button — hanya tampil di mobile */}
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(true);
+        }}
         aria-label="Buka menu"
         aria-expanded={open}
         aria-controls="mobile-menu-drawer"
+        style={{ touchAction: "manipulation" }}
         className="md:hidden grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shrink-0"
       >
         {/* Hamburger icon (3 bars) */}
@@ -79,6 +83,7 @@ export default function MobileMenu() {
           strokeLinecap="round"
           strokeLinejoin="round"
           aria-hidden="true"
+          style={{ pointerEvents: "none" }}
         >
           <line x1="4" y1="6" x2="20" y2="6" />
           <line x1="4" y1="12" x2="20" y2="12" />
@@ -122,14 +127,18 @@ export default function MobileMenu() {
           </Link>
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+            }}
             aria-label="Tutup menu"
-            className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition shrink-0"
+            style={{ touchAction: "manipulation" }}
+            className="grid h-10 w-10 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 active:bg-slate-200 transition shrink-0 cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -137,6 +146,7 @@ export default function MobileMenu() {
               strokeLinecap="round"
               strokeLinejoin="round"
               aria-hidden="true"
+              style={{ pointerEvents: "none" }}
             >
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
