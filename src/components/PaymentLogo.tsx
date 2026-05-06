@@ -56,7 +56,7 @@ export default function PaymentLogo({
       src={`/payment-logos/${slug}.${ext}`}
       alt={alt}
       style={STYLE[variant]}
-      loading="lazy"
+      decoding="async"
       onError={() => setStage((s) => (s + 1) as 0 | 1 | 2)}
     />
   );
