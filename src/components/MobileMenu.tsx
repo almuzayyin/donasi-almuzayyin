@@ -211,7 +211,9 @@ export default function MobileMenu() {
   return (
     <>
       {/* Hamburger button — TOGGLE open/close, hanya tampil di mobile.
-          Icon animate dari 3 bars (☰) ke X saat drawer open. */}
+          Pakai 2 SVG (hamburger + X) dengan opacity crossfade —
+          lebih reliable dari approach CSS bars dengan absolute positioning
+          (yang sebelumnya tidak ke-render karena h-0.5 sub-pixel rounding). */}
       <button
         type="button"
         onClick={(e) => {
@@ -224,34 +226,54 @@ export default function MobileMenu() {
         style={{ touchAction: "manipulation" }}
         className="md:hidden relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition shrink-0"
       >
-        <span
+        {/* Hamburger SVG (☰) */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.25"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           aria-hidden="true"
-          style={{ pointerEvents: "none" }}
-          className="relative block h-4 w-5"
+          style={{
+            position: "absolute",
+            opacity: open ? 0 : 1,
+            transform: open ? "rotate(90deg) scale(0.5)" : "rotate(0) scale(1)",
+            transition: "opacity 200ms ease-out, transform 250ms ease-out",
+            pointerEvents: "none",
+          }}
         >
-          <span
-            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-all duration-300"
-            style={{
-              top: open ? "50%" : "10%",
-              transform: open ? "translateY(-50%) rotate(45deg)" : "none",
-            }}
-          />
-          <span
-            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-opacity duration-200"
-            style={{
-              top: "50%",
-              transform: "translateY(-50%)",
-              opacity: open ? 0 : 1,
-            }}
-          />
-          <span
-            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-all duration-300"
-            style={{
-              bottom: open ? "50%" : "10%",
-              transform: open ? "translateY(50%) rotate(-45deg)" : "none",
-            }}
-          />
-        </span>
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="18" x2="20" y2="18" />
+        </svg>
+
+        {/* X close SVG (✕) */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            opacity: open ? 1 : 0,
+            transform: open ? "rotate(0) scale(1)" : "rotate(-90deg) scale(0.5)",
+            transition: "opacity 200ms ease-out, transform 250ms ease-out",
+            pointerEvents: "none",
+          }}
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
       </button>
 
       {/* Render backdrop + drawer ke body via portal — escape header's
