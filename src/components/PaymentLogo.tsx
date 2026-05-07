@@ -1,13 +1,22 @@
 /**
- * Payment logo dengan fallback chain:
- *   1. /public/payment-logos/{slug}.svg  ← prioritas (logo asli SVG)
- *   2. /public/payment-logos/{slug}.png  ← fallback PNG
- *   3. children                          ← stylized inline SVG fallback
+ * Payment logo dengan fallback chain disederhanakan:
+ *   1. /public/payment-logos/{slug}.png  ← langsung PNG (yang kita punya)
+ *   2. children                          ← stylized inline SVG fallback
  *
- * Pakai inline style (bukan Tailwind class) untuk sizing supaya tidak
- * kena CSS specificity issue. Logo PNG dari Figma library biasanya
- * punya internal padding + card bg → kita kasih slot fixed-size kecil
- * supaya tidak ngebanjirin footer.
+ * Sebelumnya: try .svg → onError → switch .png → onError → fallback.
+ * Tapi: kita ga punya file .svg di repo, jadi setiap logo SELALU
+ * fail di stage 0, trigger 26 requests + 26 onError chains untuk 13
+ * logo. Browser cache 404 SVG persist ber-jam-jam → setelah cache,
+ * onError tidak re-fire → stage stuck di 0 → broken image persist.
+ *
+ * Fix: skip SVG attempt entirely. Single PNG request per logo.
+ * Kalau user tetap mau SVG di masa depan, bisa convert PNG → SVG
+ * dan replace file di /public/payment-logos/.
+ *
+ * Tambahan optimasi:
+ * - width & height attributes (CLS = 0, no layout shift)
+ * - decoding async (non-blocking parsing)
+ * - fetchPriority low (footer logos = below fold, low priority)
  */
 "use client";
 
@@ -21,7 +30,6 @@ interface PaymentLogoProps {
   variant?: "default" | "lg";
 }
 
-// Inline style — guaranteed apply, no Tailwind class purge surprises
 const STYLE: Record<NonNullable<PaymentLogoProps["variant"]>, CSSProperties> = {
   default: {
     height: 32,
@@ -37,27 +45,37 @@ const STYLE: Record<NonNullable<PaymentLogoProps["variant"]>, CSSProperties> = {
   },
 };
 
+// Native HTML width/height untuk CLS stability — pakai max dimensions
+const HW: Record<NonNullable<PaymentLogoProps["variant"]>, { w: number; h: number }> = {
+  default: { w: 64, h: 32 },
+  lg: { w: 80, h: 24 },
+};
+
 export default function PaymentLogo({
   slug,
   alt,
   children,
   variant = "default",
 }: PaymentLogoProps) {
-  const [stage, setStage] = useState<0 | 1 | 2>(0);
+  const [errored, setErrored] = useState(false);
 
-  if (stage === 2) {
+  if (errored) {
     return <span className="inline-flex items-center">{children}</span>;
   }
 
-  const ext = stage === 0 ? "svg" : "png";
+  const { w, h } = HW[variant];
 
   return (
     <img
-      src={`/payment-logos/${slug}.${ext}`}
+      src={`/payment-logos/${slug}.png`}
       alt={alt}
+      width={w}
+      height={h}
       style={STYLE[variant]}
       decoding="async"
-      onError={() => setStage((s) => (s + 1) as 0 | 1 | 2)}
+      // @ts-expect-error — fetchPriority is valid HTML attribute, baru di React 19
+      fetchpriority="low"
+      onError={() => setErrored(true)}
     />
   );
 }
