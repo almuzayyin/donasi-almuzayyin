@@ -1,15 +1,22 @@
 /**
  * Mobile hamburger drawer untuk navigasi publik.
  *
- * Hanya tampil di mobile (md:hidden). Drawer slide dari kanan dengan
- * backdrop fade. ESC + tap backdrop = close. Body scroll di-lock saat
- * drawer open agar tidak scroll-through.
+ * KEY DESIGN: backdrop + drawer di-render ke document.body via React Portal,
+ * supaya escape dari header's stacking context (header punya sticky + z-30
+ * + backdrop-blur yang ngeblok backdrop dari menjangkau page content).
+ *
+ * Hamburger button tetap di header (just a button, no positioning issues).
+ *
+ * Animation: Tailwind transition-transform class + inline transform value
+ * (translateX langsung, bukan CSS var dari Tailwind translate-x-* yang
+ * kadang tidak interpolate properly).
  */
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Logo from "./Logo";
 
 interface NavItem {
@@ -31,6 +38,12 @@ const NAV_ITEMS: NavItem[] = [
 export default function MobileMenu() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Mount detection — portal target only available client-side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Tutup drawer saat pindah halaman
   useEffect(() => {
@@ -56,84 +69,43 @@ export default function MobileMenu() {
     return pathname.startsWith(href);
   }
 
-  return (
-    <>
-      {/* Hamburger button — TOGGLE open/close, hanya tampil di mobile.
-          Icon animate dari 3 bars (☰) ke X saat drawer open untuk
-          visual feedback yang jelas. */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((v) => !v);
-        }}
-        aria-label={open ? "Tutup menu" : "Buka menu"}
-        aria-expanded={open}
-        aria-controls="mobile-menu-drawer"
-        style={{ touchAction: "manipulation" }}
-        className="md:hidden relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition shrink-0 z-50"
-      >
-        {/* Animated hamburger ↔ X — pakai 3 bar yang morph */}
-        <span
-          aria-hidden="true"
-          style={{ pointerEvents: "none" }}
-          className="relative block h-4 w-5"
-        >
-          {/* Bar 1 (top) */}
-          <span
-            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-all duration-300"
-            style={{
-              top: open ? "50%" : "10%",
-              transform: open ? "translateY(-50%) rotate(45deg)" : "none",
-            }}
-          />
-          {/* Bar 2 (middle) — fade out saat open */}
-          <span
-            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-opacity duration-200"
-            style={{
-              top: "50%",
-              transform: "translateY(-50%)",
-              opacity: open ? 0 : 1,
-            }}
-          />
-          {/* Bar 3 (bottom) */}
-          <span
-            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-all duration-300"
-            style={{
-              bottom: open ? "50%" : "10%",
-              transform: open ? "translateY(50%) rotate(-45deg)" : "none",
-            }}
-          />
-        </span>
-      </button>
-
-      {/* Backdrop — pakai inline style biar bg-black/opacity guaranteed apply */}
+  // Drawer + backdrop content (akan di-portal ke document.body)
+  const overlay = (
+    <div className="md:hidden">
+      {/* Backdrop — pakai inline style biar bg-color transition guaranteed apply */}
       <div
         onClick={() => setOpen(false)}
         aria-hidden="true"
-        className="md:hidden"
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 40,
-          backgroundColor: open ? "rgba(0, 0, 0, 0.55)" : "rgba(0, 0, 0, 0)",
+          zIndex: 9998,
+          backgroundColor: open ? "rgba(15, 23, 42, 0.6)" : "rgba(15, 23, 42, 0)",
           pointerEvents: open ? "auto" : "none",
-          transition: "background-color 200ms ease-out",
+          transition: "background-color 250ms ease-out",
         }}
       />
 
-      {/* Drawer — Tailwind class untuk transform/transition (proven reliable),
-          inline style hanya untuk static positioning. Inline transition
-          sebelumnya tidak interpolate karena browser tidak detect from-state
-          saat React render new style + new transition together. */}
+      {/* Drawer — Tailwind class untuk transition (proven), inline transform
+          pakai value langsung (bukan CSS var dari translate-x-*) supaya
+          interpolation reliable di semua browser */}
       <aside
         id="mobile-menu-drawer"
         role="dialog"
         aria-modal="true"
         aria-label="Menu navigasi"
-        className={`md:hidden fixed top-0 right-0 z-50 h-screen w-[85%] max-w-[340px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className="bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out"
+        style={{
+          position: "fixed",
+          top: 0,
+          right: 0,
+          zIndex: 9999,
+          height: "100dvh",
+          width: "85%",
+          maxWidth: 340,
+          transform: open ? "translateX(0)" : "translateX(100%)",
+          willChange: "transform",
+        }}
       >
         {/* Header drawer */}
         <div className="flex items-center justify-between gap-3 px-4 py-4 border-b border-slate-200 shrink-0">
@@ -233,6 +205,59 @@ export default function MobileMenu() {
           </Link>
         </div>
       </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Hamburger button — TOGGLE open/close, hanya tampil di mobile.
+          Icon animate dari 3 bars (☰) ke X saat drawer open. */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        aria-label={open ? "Tutup menu" : "Buka menu"}
+        aria-expanded={open}
+        aria-controls="mobile-menu-drawer"
+        style={{ touchAction: "manipulation" }}
+        className="md:hidden relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition shrink-0"
+      >
+        <span
+          aria-hidden="true"
+          style={{ pointerEvents: "none" }}
+          className="relative block h-4 w-5"
+        >
+          <span
+            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-all duration-300"
+            style={{
+              top: open ? "50%" : "10%",
+              transform: open ? "translateY(-50%) rotate(45deg)" : "none",
+            }}
+          />
+          <span
+            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-opacity duration-200"
+            style={{
+              top: "50%",
+              transform: "translateY(-50%)",
+              opacity: open ? 0 : 1,
+            }}
+          />
+          <span
+            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-all duration-300"
+            style={{
+              bottom: open ? "50%" : "10%",
+              transform: open ? "translateY(50%) rotate(-45deg)" : "none",
+            }}
+          />
+        </span>
+      </button>
+
+      {/* Render backdrop + drawer ke body via portal — escape header's
+          stacking context (sticky + backdrop-blur creates new context that
+          traps elements + caps z-index visibility) */}
+      {mounted && createPortal(overlay, document.body)}
     </>
   );
 }
