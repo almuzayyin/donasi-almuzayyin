@@ -58,37 +58,53 @@ export default function MobileMenu() {
 
   return (
     <>
-      {/* Hamburger button — hanya tampil di mobile */}
+      {/* Hamburger button — TOGGLE open/close, hanya tampil di mobile.
+          Icon animate dari 3 bars (☰) ke X saat drawer open untuk
+          visual feedback yang jelas. */}
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          setOpen(true);
+          setOpen((v) => !v);
         }}
-        aria-label="Buka menu"
+        aria-label={open ? "Tutup menu" : "Buka menu"}
         aria-expanded={open}
         aria-controls="mobile-menu-drawer"
         style={{ touchAction: "manipulation" }}
-        className="md:hidden grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition shrink-0"
+        className="md:hidden relative grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition shrink-0 z-50"
       >
-        {/* Hamburger icon (3 bars) */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        {/* Animated hamburger ↔ X — pakai 3 bar yang morph */}
+        <span
           aria-hidden="true"
           style={{ pointerEvents: "none" }}
+          className="relative block h-4 w-5"
         >
-          <line x1="4" y1="6" x2="20" y2="6" />
-          <line x1="4" y1="12" x2="20" y2="12" />
-          <line x1="4" y1="18" x2="20" y2="18" />
-        </svg>
+          {/* Bar 1 (top) */}
+          <span
+            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-all duration-300"
+            style={{
+              top: open ? "50%" : "10%",
+              transform: open ? "translateY(-50%) rotate(45deg)" : "none",
+            }}
+          />
+          {/* Bar 2 (middle) — fade out saat open */}
+          <span
+            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-opacity duration-200"
+            style={{
+              top: "50%",
+              transform: "translateY(-50%)",
+              opacity: open ? 0 : 1,
+            }}
+          />
+          {/* Bar 3 (bottom) */}
+          <span
+            className="absolute left-0 right-0 h-0.5 bg-current rounded transition-all duration-300"
+            style={{
+              bottom: open ? "50%" : "10%",
+              transform: open ? "translateY(50%) rotate(-45deg)" : "none",
+            }}
+          />
+        </span>
       </button>
 
       {/* Backdrop — pakai inline style biar bg-black/opacity guaranteed apply */}
