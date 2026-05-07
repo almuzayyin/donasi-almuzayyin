@@ -122,25 +122,18 @@ export default function MobileMenu() {
         }}
       />
 
-      {/* Drawer */}
+      {/* Drawer — Tailwind class untuk transform/transition (proven reliable),
+          inline style hanya untuk static positioning. Inline transition
+          sebelumnya tidak interpolate karena browser tidak detect from-state
+          saat React render new style + new transition together. */}
       <aside
         id="mobile-menu-drawer"
         role="dialog"
         aria-modal="true"
         aria-label="Menu navigasi"
-        className="md:hidden bg-white shadow-2xl flex flex-col"
-        style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          zIndex: 50,
-          height: "100vh",
-          width: "85%",
-          maxWidth: 340,
-          transform: open ? "translateX(0)" : "translateX(100%)",
-          transition: "transform 300ms cubic-bezier(0.16, 1, 0.3, 1)",
-          willChange: "transform",
-        }}
+        className={`md:hidden fixed top-0 right-0 z-50 h-screen w-[85%] max-w-[340px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out will-change-transform ${
+          open ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         {/* Header drawer */}
         <div className="flex items-center justify-between gap-3 px-4 py-4 border-b border-slate-200 shrink-0">
